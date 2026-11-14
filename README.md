@@ -1,3 +1,5 @@
+> **True Nature development fork:** see [TRUE_NATURE.md](./TRUE_NATURE.md) for the relational Songstats importer, development workflow, and current scope. Upstream Teable documentation follows.
+
 <div align="center">
   <h1 align="center">
     <picture>

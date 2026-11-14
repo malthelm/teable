@@ -82,3 +82,7 @@ pnpm-debug.log*
 # LocalStorage assets
 
 **/.assets
+
+# Private True Nature snapshots, credentials, checkpoints and local evidence
+/.true-nature/
+**/__pycache__/

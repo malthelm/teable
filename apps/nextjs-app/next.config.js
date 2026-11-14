@@ -22,6 +22,11 @@ const isCI = trueEnv.includes(process.env?.CI ?? 'false');
 
 const NEXT_BUILD_ENV_OUTPUT = process.env?.NEXT_BUILD_ENV_OUTPUT ?? 'classic';
 const NEXT_BUILD_ENV_TSCONFIG = process.env?.NEXT_BUILD_ENV_TSCONFIG ?? 'tsconfig.json';
+const buildCpusValue = process.env.NEXT_BUILD_ENV_CPUS;
+const buildCpus = buildCpusValue === undefined ? undefined : Number(buildCpusValue);
+if (buildCpus !== undefined && (!Number.isInteger(buildCpus) || buildCpus < 1)) {
+  throw new Error('NEXT_BUILD_ENV_CPUS must be a positive integer');
+}
 
 const NEXT_BUILD_ENV_TYPECHECK = trueEnv.includes(process.env?.NEXT_BUILD_ENV_TYPECHECK ?? 'true');
 const NEXT_BUILD_ENV_SOURCEMAPS = trueEnv.includes(
@@ -193,6 +198,9 @@ const nextConfig = {
   serverExternalPackages: ['next-i18next', 'i18next-fs-backend'],
 
   experimental: {
+    // Bound page-generation workers on memory-constrained self-hosted builders.
+    // Leave Next's upstream default intact when the override is absent.
+    ...(buildCpus === undefined ? {} : { cpus: buildCpus }),
     // @link https://nextjs.org/docs/advanced-features/output-file-tracing#caveats
     ...(NEXT_BUILD_ENV_OUTPUT === 'standalone' ? { outputFileTracingRoot: workspaceRoot } : {}),
 
