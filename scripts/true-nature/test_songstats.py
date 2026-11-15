@@ -130,7 +130,7 @@ class ImportTests(unittest.TestCase):
         self.apply()
         self.assertEqual(self.api.writes, writes)
 
-    def test_resume_accepts_server_trimmed_text_but_preserves_raw_json(self):
+    def test_resume_accepts_server_trimmed_text(self):
         self.plan["tables"]["Artists"]["rows"][0]["fields"]["Name"] = " Example Artist  "
         self.apply()
         tid = next(t["id"] for t in self.api.tables.values() if t["name"] == "Artists")
@@ -139,7 +139,22 @@ class ImportTests(unittest.TestCase):
         self.apply()
         self.assertEqual(self.api.writes, writes)
         self.assertEqual(s.comparable("  ", "singleLineText"), None)
-        self.assertEqual(s.comparable("  raw  ", "longText"), "  raw  ")
+        self.assertEqual(s.comparable("  raw  ", "longText"), "raw")
+
+    def test_raw_payload_encoding_preserves_exact_whitespace_and_checksum(self):
+        raw = ' {"example": "  value  "} \n'
+        self.data["Raw Responses"] = [{"Record_Key": "raw-1", "File": "example.json",
+            "Chunk": 0, "Payload_JSON": raw, "SHA256": s.hashlib.sha256(raw.encode()).hexdigest()}]
+        write_snapshot(self.path, self.data)
+        self.plan = s.build_plan(self.path)
+        self.apply()
+        tid = next(t["id"] for t in self.api.tables.values() if t["name"] == "Raw Responses")
+        row = self.api.rows[tid][0]["fields"]
+        row["Payload_JSON"] = row["Payload_JSON"].strip()
+        restored = s.base64.b64decode(row["Payload_Base64"])
+        self.assertEqual(restored, raw.encode())
+        self.assertEqual(s.hashlib.sha256(restored).hexdigest(), row["SHA256"])
+        self.apply()
 
     def test_explicitly_sets_marker_when_create_omits_description(self):
         self.api.omit_create_description = True

@@ -87,7 +87,7 @@ The private instance is at https://tables.truenature.online, using native Pocket
 
 The production runtime requires OpenSSL and CA certificates, the backend static assets at `/app/static`, both Prisma migration directories, and the compiled plugin server as well as the main frontend/backend. A successful build alone is insufficient: check application health, the OIDC callback, denied anonymous record access, and the grid in a mobile browser.
 
-The Songstats adapter is a resumable snapshot import, not a scheduled sync. `--batch-size` accepts 1–500 records while retaining the payload byte limit. Verification accepts Teable's trimming of single-line text; original provider JSON remains unchanged. On CE versions that omit a table description during creation, the importer saves the returned table ID before explicitly setting and reading back its import marker. It will not repair an unmarked table absent from its checkpoint.
+The Songstats adapter is a resumable snapshot import, not a scheduled sync. `--batch-size` accepts 1–500 records while retaining the payload byte limit. Verification accepts Teable's trimming of text fields. Raw response chunks also carry `Payload_Base64`, preserving the exact original UTF-8 bytes, including whitespace, so files can be reconstructed and checked against `SHA256`. On CE versions that omit a table description during creation, the importer saves the returned table ID before explicitly setting and reading back its import marker. It will not repair an unmarked table absent from its checkpoint.
 
 ## Recovery
 

@@ -5,6 +5,7 @@ The default command is an offline plan. Real data and credentials stay outside g
 This adapter uses the existing packages/openapi contracts; it does not modify v2 core.
 """
 import argparse
+import base64
 import datetime as dt
 import fcntl
 import hashlib
@@ -53,7 +54,7 @@ def infer_fields(name, rows):
         kind = "singleLineText"
         if values and all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in values):
             kind = "number"
-        elif key.endswith("_JSON"):
+        elif key.endswith(("_JSON", "_Base64")):
             kind = "longText"
         elif key in DATE_FIELDS and values and all(isinstance(v, str) for v in values):
             try:
@@ -93,6 +94,10 @@ def build_plan(snapshot):
         })],
         **{name: source[name] for name in SOURCES if name != "Profiles"},
     }
+    # Teable trims text, including long text. Keep exact UTF-8 payload chunks in
+    # a whitespace-free encoding alongside the human-readable JSON and checksum.
+    data["Raw Responses"] = [{**row, "Payload_Base64": base64.b64encode(
+        row["Payload_JSON"].encode("utf-8")).decode("ascii")} for row in data["Raw Responses"]]
     tables = {}
     for name, rows in data.items():
         keys = [r.get("Record_Key") for r in rows]
@@ -203,8 +208,8 @@ def field_matches(actual, expected):
 
 
 def comparable(value, kind):
-    # Teable trims single-line text on write; raw provider JSON remains untouched.
-    if kind == "singleLineText" and isinstance(value, str):
+    # Teable trims all text on write; Payload_Base64 preserves exact raw chunks.
+    if kind in ("singleLineText", "longText") and isinstance(value, str):
         value = value.strip()
     if value in (None, ""):
         return None
