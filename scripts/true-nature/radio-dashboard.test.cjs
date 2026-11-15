@@ -3,6 +3,15 @@ const test = require('node:test');
 const { normalizePlays, filterPlays, rankPlays, timeline, dateWindow, loadPlays } = require('../../apps/nextjs-app/src/features/app/radio/radio-data.ts');
 const record = (id, at, track = 'a', country = 'US') => ({id, fields: {Track:track, Track_ID:track, Station:'Station', Station_ID:'s', Country:country, Played_At_UTC:at}});
 
+test('dashboard login destination resolves to an implemented app route', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const {RADIO_LOGIN} = require('../../apps/nextjs-app/src/features/app/radio/radio-data.ts');
+  const destination = new URL(RADIO_LOGIN, 'https://tables.example');
+  assert.ok(fs.existsSync(path.resolve(__dirname, '../../apps/nextjs-app/src/pages', destination.pathname.slice(1) + '.tsx')));
+  assert.equal(destination.searchParams.get('redirect'), '/radio');
+});
+
 test('UTC normalization, missing dates and duplicate record protection', () => {
   const result = normalizePlays([record('1','2026-11-11T23:30:00-05:00'),record('2','invalid')]);
   assert.equal(result.plays[0].day,'2026-11-12');

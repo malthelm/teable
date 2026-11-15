@@ -1,5 +1,5 @@
 import type { GetServerSideProps } from 'next';
-import { RADIO_BASE } from '@/features/app/radio/radio-data';
+import { RADIO_BASE, RADIO_LOGIN } from '@/features/app/radio/radio-data';
 import { RadioDashboard } from '@/features/app/radio/RadioDashboard';
 import { systemConfig } from '@/features/i18n/system.config';
 import ensureLogin from '@/lib/ensureLogin';
@@ -23,7 +23,7 @@ const authorizedPage = withEnv(
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const result = await authorizedPage(context);
   if ('redirect' in result && result.redirect.destination.startsWith('/auth/')) {
-    return { redirect: { destination: '/auth/signin?redirect=%2Fradio', permanent: false } };
+    return { redirect: { destination: RADIO_LOGIN, permanent: false } };
   }
   return result;
 };

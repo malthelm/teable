@@ -13,6 +13,7 @@ import {
   timeline,
   RADIO_RECORDS,
   RADIO_TOTALS,
+  RADIO_LOGIN,
 } from './radio-data';
 import type { Play, Rank } from './radio-data';
 import styles from './radio.module.css';
@@ -199,7 +200,7 @@ export function RadioDashboard() {
             <h2>Couldn’t load the dashboard</h2>
             <p>{error}</p>
             <Button onClick={() => setRevision((r) => r + 1)}>Try again</Button>
-            <Link href="/auth/signin?redirect=%2Fradio">Sign in</Link>
+            <Link href={RADIO_LOGIN}>Sign in</Link>
           </div>
         ) : !all.length ? (
           <div className={styles.state}>No timestamped radio plays are available yet.</div>
