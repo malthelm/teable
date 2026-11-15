@@ -59,6 +59,8 @@ export class NextController {
     // The mobile app's Service Worker (`public/mobile-sw.js`, built by the app's postbuild).
     'mobile-sw.js',
     'home',
+    // The page and its data requests enforce the normal base/session permissions.
+    'radio',
     '404/{*splat}',
     '403{/*splat}',
     '402{/*splat}',
