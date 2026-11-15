@@ -23,14 +23,27 @@ export const SheetWrapper = (props: SheetWrapperProps) => {
         <SheetTrigger asChild>
           <Button
             className={cn('fixed start-0 z-50 p-1 transition-all rounded-e-full rounded-s-none')}
-            style={{ top: `calc(var(--teable-top-banner-height) + ${triggerTopOffset})` }}
+            style={{
+              top: `calc(var(--teable-top-banner-height) + var(--teable-safe-top, 0px) + ${triggerTopOffset})`,
+            }}
+            aria-label="Open sidebar"
+            data-sidebar-toggle
             size="icon-xs"
             variant={'outline'}
           >
             <ChevronsRight className="size-5 shrink-0" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0" closeable={false}>
+        <SheetContent
+          side="left"
+          className="p-0"
+          style={{
+            top: 'var(--teable-safe-top, 0px)',
+            bottom: 'var(--teable-safe-bottom, 0px)',
+            height: 'auto',
+          }}
+          closeable={false}
+        >
           {children}
         </SheetContent>
       </Sheet>

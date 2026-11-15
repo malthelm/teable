@@ -38,8 +38,8 @@ export const HoverWrapper = (props: IHoverWrapperProps) => {
             hover ? 'z-30 w-full' : 'w-auto z-0'
           )}
           style={{
-            top: 'var(--teable-top-banner-height)',
-            height: 'calc(100vh - var(--teable-top-banner-height))',
+            top: 'calc(var(--teable-top-banner-height) + var(--teable-safe-top, 0px))',
+            height: 'var(--teable-content-height)',
           }}
         >
           <div

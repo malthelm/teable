@@ -127,7 +127,9 @@ export const Sidebar: FC<PropsWithChildren<ISidebarProps>> = (props) => {
         <HoverWrapper.Trigger>
           <Button
             className="fixed start-0 z-40 rounded-none rounded-e-full p-1"
-            style={{ top: 'calc(var(--teable-top-banner-height) + 1.75rem)' }}
+            style={{
+              top: 'calc(var(--teable-top-banner-height) + var(--teable-safe-top, 0px) + 1.75rem)',
+            }}
             variant="outline"
             size="xs"
             onClick={toggleSidebar}
