@@ -365,6 +365,7 @@ def main():
         if args.resource_check:
             result = subprocess.run([args.resource_check], capture_output=True, text=True, check=False)
             if result.returncode not in (0, 10) or "state=red" in result.stdout:
+                print("Import paused by resource guard: " + result.stdout.strip(), file=sys.stderr)
                 raise SystemExit(75)
 
     args.state.parent.mkdir(parents=True, exist_ok=True)
