@@ -303,6 +303,9 @@ importers:
       '@teable/v2-adapter-undo-redo-keyv':
         specifier: workspace:*
         version: link:../../packages/v2/adapter-undo-redo-keyv
+      '@teable/v2-command-explain':
+        specifier: workspace:*
+        version: link:../../packages/v2/command-explain
       '@teable/v2-container-node':
         specifier: workspace:*
         version: link:../../packages/v2/container-node
