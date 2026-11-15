@@ -10,6 +10,19 @@
   --separator-border: hsl(var(--border)) !important;
   --fc-border-color: hsl(var(--border));
   --teable-top-banner-height: 0px;
+  --teable-viewport-height: 100vh;
+  --teable-safe-top: env(safe-area-inset-top, 0px);
+  --teable-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --teable-content-height: calc(
+    var(--teable-viewport-height) - var(--teable-top-banner-height) - var(--teable-safe-top) -
+      var(--teable-safe-bottom)
+  );
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --teable-viewport-height: 100dvh;
+  }
 }
 
 svg.icon {
@@ -29,14 +42,26 @@ body[data-teable-top-banner='visible'] #portal {
   margin-top: var(--teable-top-banner-height);
 }
 
-body[data-teable-top-banner='visible'] #portal.h-screen,
-body[data-teable-top-banner='visible'] #portal .h-screen {
-  height: calc(100vh - var(--teable-top-banner-height));
+#portal {
+  box-sizing: border-box;
+  padding: var(--teable-safe-top) env(safe-area-inset-right, 0px) var(--teable-safe-bottom)
+    env(safe-area-inset-left, 0px);
 }
 
-body[data-teable-top-banner='visible'] #portal.min-h-screen,
-body[data-teable-top-banner='visible'] #portal .min-h-screen {
-  min-height: calc(100vh - var(--teable-top-banner-height));
+#portal.h-screen {
+  height: calc(var(--teable-viewport-height) - var(--teable-top-banner-height));
+}
+
+#portal .h-screen {
+  height: var(--teable-content-height);
+}
+
+#portal.min-h-screen {
+  min-height: calc(var(--teable-viewport-height) - var(--teable-top-banner-height));
+}
+
+#portal .min-h-screen {
+  min-height: var(--teable-content-height);
 }
 
 .select-field-type [cmdk-list] {

@@ -1,6 +1,9 @@
 {
-  "name": "",
-  "short_name": "",
+  "id": "/",
+  "name": "True Nature Tables",
+  "short_name": "Tables",
+  "start_url": "/",
+  "scope": "/",
   "icons": [
     {
       "src": "/images/favicon/android-chrome-192x192.png",

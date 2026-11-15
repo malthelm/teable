@@ -76,7 +76,7 @@ const MyApp = (appProps: AppPropsWithLayout) => {
         <Head>
           <meta
             name="viewport"
-            content="width=device-width,viewport-fit=cover, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
           />
           <style>{getColorsCssVariablesText(colors)}</style>
         </Head>
