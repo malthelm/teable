@@ -198,7 +198,7 @@ export function RadioDashboard() {
           </Button>
         </div>
       </header>
-      <main className={styles.main}>
+      <div className={styles.main}>
         {loading ? (
           <div role="status" className={styles.state}>
             Loading radio plays…
@@ -496,7 +496,7 @@ export function RadioDashboard() {
             </footer>
           </>
         )}
-      </main>
+      </div>
     </div>
   );
 }
