@@ -85,6 +85,12 @@ Commercial-image features are not assumed to exist in this source fork. The upst
 
 The private instance is at https://tables.truenature.online, using native Pocket ID login. Dokploy owns deployment and rollback. PostgreSQL, Redis, and uploaded assets are persistent and separate from the compiled application release. Password login is disabled; access is restricted to the configured Pocket ID group.
 
+### iPhone Home Screen
+
+Install from Safari using Add to Home Screen, with Open as Web App enabled when that option is offered. Open the resulting icon. Existing icons created before the Home Screen fix may need to be added again to refresh their launch settings. A normal Safari bookmark or an in-app browser still has browser controls.
+
+The manifest uses a stable root identity, root launch URL, and root navigation scope, so changing tables or spaces stays within this app. iOS metadata supplies the app name and standalone capability. The application frame uses the dynamic viewport height and safe-area insets; zoom remains available. Login and callback paths stay on the existing authentication flow. Browser automation can verify the metadata, routing, and layout, but installed-mode navigation, passkeys, and keyboard behavior still require a physical iPhone check.
+
 The production runtime requires OpenSSL and CA certificates, the backend static assets at `/app/static`, both Prisma migration directories, and the compiled plugin server as well as the main frontend/backend. A successful build alone is insufficient: check application health, the OIDC callback, denied anonymous record access, and the grid in a mobile browser.
 
 The Songstats adapter is a resumable snapshot import, not a scheduled sync. `--batch-size` accepts 1–500 records while retaining the payload byte limit. Verification accepts Teable's trimming of text fields. Raw response chunks also carry `Payload_Base64`, preserving the exact original UTF-8 bytes, including whitespace, so files can be reconstructed and checked against `SHA256`. On CE versions that omit a table description during creation, the importer saves the returned table ID before explicitly setting and reading back its import marker. It will not repair an unmarked table absent from its checkpoint.
