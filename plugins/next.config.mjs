@@ -7,6 +7,11 @@ const trueEnv = ['true', '1', 'yes'];
 
 const NEXT_BUILD_ENV_TSCONFIG = process.env?.NEXT_BUILD_ENV_TSCONFIG ?? 'tsconfig.json';
 const NEXT_BUILD_ENV_TYPECHECK = trueEnv.includes(process.env?.NEXT_BUILD_ENV_TYPECHECK ?? 'true');
+const buildCpusValue = process.env.NEXT_BUILD_ENV_CPUS;
+const buildCpus = buildCpusValue === undefined ? undefined : Number(buildCpusValue);
+if (buildCpus !== undefined && (!Number.isInteger(buildCpus) || buildCpus < 1)) {
+  throw new Error('NEXT_BUILD_ENV_CPUS must be a positive integer');
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -32,6 +37,7 @@ const basePath = '/plugin';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  ...(buildCpus === undefined ? {} : { experimental: { cpus: buildCpus } }),
   basePath,
   output: 'standalone',
   turbopack: {
