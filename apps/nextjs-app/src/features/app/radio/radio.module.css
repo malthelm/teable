@@ -7,6 +7,19 @@
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }
+.mobileFilters {
+  display: none;
+}
+.activeFilters {
+  margin-top: 8px;
+  line-height: 1.6;
+  color: #226340;
+}
+.activeFilters button {
+  text-decoration: underline;
+  margin-left: 8px;
+  padding: 3px;
+}
 .header {
   display: flex;
   align-items: center;
@@ -336,6 +349,17 @@
   }
 }
 @media (max-width: 480px) {
+  .mobileFilters {
+    display: inline-flex;
+    margin-bottom: 12px;
+    min-height: 42px;
+  }
+  .filters[data-open='false'] {
+    display: none;
+  }
+  .reloadLabel {
+    display: none;
+  }
   .header {
     padding: 14px 16px;
   }

@@ -89,6 +89,7 @@ export function RadioDashboard() {
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
   const [visibleCount, setVisibleCount] = useState(15);
+  const [showFilters, setShowFilters] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
@@ -181,11 +182,12 @@ export function RadioDashboard() {
           <Button
             variant="outline"
             disabled={loading}
+            aria-label="Reload data"
             onClick={() => setRevision((r) => r + 1)}
             title="Reload the imported records from Tables"
           >
             <RefreshCw size={16} />
-            Reload data
+            <span className={styles.reloadLabel}>Reload data</span>
           </Button>
         </div>
         {loading ? (
@@ -205,15 +207,29 @@ export function RadioDashboard() {
           <>
             <div className={styles.freshness}>
               <span>
-                Songstats imported <strong>{dateLabel(imported)}</strong> · latest play{' '}
-                {dateLabel(latestDay)}
+                Songstats imported <strong>{dateLabel(imported)}</strong>
               </span>
               <span>Automatic Songstats sync is off</span>
             </div>
-            <section className={styles.filters} aria-label="Filter radio plays">
+            <Button
+              variant="outline"
+              className={styles.mobileFilters}
+              aria-expanded={showFilters}
+              aria-controls="radio-filters"
+              onClick={() => setShowFilters((value) => !value)}
+            >
+              {showFilters ? 'Hide filters' : 'Filters'}
+            </Button>
+            <section
+              id="radio-filters"
+              className={styles.filters}
+              data-open={showFilters}
+              aria-label="Filter radio plays"
+            >
               <label>
                 Period
                 <select
+                  aria-label="Period"
                   value={period}
                   onChange={(e) => {
                     setPeriod(e.target.value);
@@ -231,7 +247,7 @@ export function RadioDashboard() {
               </label>
               <label>
                 Track
-                <select value={track} onChange={(e) => setTrack(e.target.value)}>
+                <select aria-label="Track" value={track} onChange={(e) => setTrack(e.target.value)}>
                   <option value="">All tracks</option>
                   {tracks.map((t) => (
                     <option key={t.key} value={t.key}>
@@ -242,7 +258,11 @@ export function RadioDashboard() {
               </label>
               <label>
                 Country
-                <select value={country} onChange={(e) => setCountry(e.target.value)}>
+                <select
+                  aria-label="Country"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                >
                   <option value="">All countries</option>
                   {countries.map((c) => (
                     <option key={c.key} value={c.key}>
@@ -253,7 +273,11 @@ export function RadioDashboard() {
               </label>
               <label>
                 Station
-                <select value={station} onChange={(e) => setStation(e.target.value)}>
+                <select
+                  aria-label="Station"
+                  value={station}
+                  onChange={(e) => setStation(e.target.value)}
+                >
                   <option value="">All stations</option>
                   {stations.map((s) => (
                     <option key={s.key} value={s.key}>
@@ -269,6 +293,7 @@ export function RadioDashboard() {
                     <input
                       type="date"
                       value={customStart}
+                      aria-label="From (UTC)"
                       min={firstDay}
                       max={latestDay}
                       onChange={(e) => setCustomStart(e.target.value)}
@@ -279,6 +304,7 @@ export function RadioDashboard() {
                     <input
                       type="date"
                       value={customEnd}
+                      aria-label="Through (UTC)"
                       min={firstDay}
                       max={latestDay}
                       onChange={(e) => setCustomEnd(e.target.value)}
@@ -294,6 +320,26 @@ export function RadioDashboard() {
               {invalidRange
                 ? 'Choose a start date on or before the end date.'
                 : `${dateLabel(start)} – ${dateLabel(end)} · all times UTC`}
+              {(track || country || station) && (
+                <div className={styles.activeFilters}>
+                  {[
+                    tracks.find((t) => t.key === track)?.label,
+                    country ? countryName(country) : '',
+                    stations.find((s) => s.key === station)?.label,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}{' '}
+                  <button
+                    onClick={() => {
+                      setTrack('');
+                      setCountry('');
+                      setStation('');
+                    }}
+                  >
+                    Clear selection
+                  </button>
+                </div>
+              )}
             </div>
             <section className={styles.metrics} aria-label="Selected radio activity">
               {[
