@@ -1,5 +1,17 @@
-import { Button } from '@teable/ui-lib/shadcn';
-import { ArrowUpRight, Radio, RefreshCw, Table2 } from 'lucide-react';
+import {
+  Badge,
+  Button,
+  Card,
+  Input,
+  Label,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@teable/ui-lib/shadcn';
+import { ArrowUpRight, Filter, LayoutDashboard, RefreshCw, Table2 } from 'lucide-react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -17,6 +29,7 @@ import {
 } from './radio-data';
 import type { Play, Rank } from './radio-data';
 import styles from './radio.module.css';
+import { RadioFilter, RadioPeriod } from './RadioFilter';
 
 const number = (n: number) => n.toLocaleString('en');
 const EMPTY_PLAYS: Play[] = [];
@@ -42,7 +55,7 @@ function Ranking({
 }) {
   const shown = rows.slice(0, 7);
   return (
-    <section className={styles.card} aria-label={title}>
+    <Card className={styles.card} role="region" aria-label={title}>
       <div className={styles.sectionHead}>
         <h2>{title}</h2>
         <span>Recorded plays</span>
@@ -51,7 +64,8 @@ function Ranking({
         <ol className={styles.ranking}>
           {shown.map((row) => (
             <li key={row.key}>
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => onSelect(row.key)}
                 aria-label={`Filter to ${row.label}, ${number(row.count)} plays`}
               >
@@ -60,7 +74,7 @@ function Ranking({
                 <span className={styles.barTrack} aria-hidden="true">
                   <span style={{ width: `${(row.count / shown[0].count) * 100}%` }} />
                 </span>
-              </button>
+              </Button>
             </li>
           ))}
         </ol>
@@ -72,7 +86,7 @@ function Ranking({
           Top 7 of {number(rows.length)} · choose any in the filters
         </p>
       )}
-    </section>
+    </Card>
   );
 }
 
@@ -157,49 +171,45 @@ export function RadioDashboard() {
   return (
     <div className={styles.page}>
       <Head>
-        <title>Radio · True Nature</title>
+        <title>Radio dashboard · True Nature Tables</title>
         <meta name="robots" content="noindex, nofollow" />
       </Head>
       <header className={styles.header}>
-        <Link href="/radio" className={styles.brand}>
-          <Radio size={24} aria-hidden="true" />
-          True Nature <span>Radio</span>
-        </Link>
-        <nav aria-label="App">
-          <Button variant="outline" asChild>
-            <Link href={RADIO_RECORDS}>
-              <Table2 size={16} />
-              Tables
-            </Link>
-          </Button>
-        </nav>
-      </header>
-      <main className={styles.main}>
-        <div className={styles.titleRow}>
-          <div>
-            <h1>Radio dashboard</h1>
-            <p className={styles.muted}>What played, where, and when.</p>
-          </div>
+        <h1 className="flex min-w-0 items-center gap-2 text-sm font-medium">
+          <LayoutDashboard className="size-4 shrink-0" />
+          <span className="truncate">Radio dashboard</span>
+        </h1>
+        <div className="flex shrink-0 items-center gap-2">
           <Button
-            variant="outline"
+            variant="ghost"
+            size="icon-xs"
             disabled={loading}
             aria-label="Reload data"
-            onClick={() => setRevision((r) => r + 1)}
-            title="Reload the imported records from Tables"
+            title="Reload imported records"
+            onClick={() => setRevision((value) => value + 1)}
           >
-            <RefreshCw size={16} />
-            <span className={styles.reloadLabel}>Reload data</span>
+            <RefreshCw className="size-4" />
+          </Button>
+          <Button variant="outline" size="xs" asChild>
+            <Link href={RADIO_RECORDS}>
+              <Table2 className="size-4" />
+              Records
+            </Link>
           </Button>
         </div>
+      </header>
+      <main className={styles.main}>
         {loading ? (
           <div role="status" className={styles.state}>
-            Loading your radio plays…
+            Loading radio plays…
           </div>
         ) : error ? (
           <div role="alert" className={styles.state}>
             <h2>Couldn’t load the dashboard</h2>
             <p>{error}</p>
-            <Button onClick={() => setRevision((r) => r + 1)}>Try again</Button>
+            <Button size="sm" onClick={() => setRevision((value) => value + 1)}>
+              Try again
+            </Button>
             <Link href={RADIO_LOGIN}>Sign in</Link>
           </div>
         ) : !all.length ? (
@@ -207,18 +217,20 @@ export function RadioDashboard() {
         ) : (
           <>
             <div className={styles.freshness}>
-              <span>
-                Songstats imported <strong>{dateLabel(imported)}</strong>
-              </span>
-              <span>Automatic Songstats sync is off</span>
+              <span>Songstats imported {dateLabel(imported)}</span>
+              <Badge variant="secondary" className="font-normal">
+                Automatic sync off
+              </Badge>
             </div>
             <Button
               variant="outline"
+              size="sm"
               className={styles.mobileFilters}
               aria-expanded={showFilters}
               aria-controls="radio-filters"
               onClick={() => setShowFilters((value) => !value)}
             >
+              <Filter className="size-4" />
               {showFilters ? 'Hide filters' : 'Filters'}
             </Button>
             <section
@@ -227,110 +239,76 @@ export function RadioDashboard() {
               data-open={showFilters}
               aria-label="Filter radio plays"
             >
-              <label>
-                Period
-                <select
-                  aria-label="Period"
-                  value={period}
-                  onChange={(e) => {
-                    setPeriod(e.target.value);
-                    if (e.target.value === 'custom') {
-                      setCustomStart(start);
-                      setCustomEnd(end);
-                    }
-                  }}
-                >
-                  <option value="30">Latest available 30 days</option>
-                  <option value="90">Latest available 90 days</option>
-                  <option value="all">All imported plays</option>
-                  <option value="custom">Custom dates</option>
-                </select>
-              </label>
-              <label>
-                Track
-                <select aria-label="Track" value={track} onChange={(e) => setTrack(e.target.value)}>
-                  <option value="">All tracks</option>
-                  {tracks.map((t) => (
-                    <option key={t.key} value={t.key}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Country
-                <select
-                  aria-label="Country"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                >
-                  <option value="">All countries</option>
-                  {countries.map((c) => (
-                    <option key={c.key} value={c.key}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Station
-                <select
-                  aria-label="Station"
-                  value={station}
-                  onChange={(e) => setStation(e.target.value)}
-                >
-                  <option value="">All stations</option>
-                  {stations.map((s) => (
-                    <option key={s.key} value={s.key}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <RadioPeriod
+                value={period}
+                onChange={(next) => {
+                  setPeriod(next);
+                  if (next === 'custom') {
+                    setCustomStart(start);
+                    setCustomEnd(end);
+                  }
+                }}
+              />
+              <RadioFilter label="Track" value={track} onChange={setTrack} items={tracks} />
+              <RadioFilter
+                label="Country"
+                value={country}
+                onChange={setCountry}
+                items={countries}
+              />
+              <RadioFilter label="Station" value={station} onChange={setStation} items={stations} />
               {period === 'custom' && (
                 <>
-                  <label>
-                    From (UTC)
-                    <input
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="radio-from" className="text-muted-foreground text-xs">
+                      From (UTC)
+                    </Label>
+                    <Input
+                      id="radio-from"
+                      aria-label="From (UTC)"
                       type="date"
                       value={customStart}
-                      aria-label="From (UTC)"
                       min={firstDay}
                       max={latestDay}
-                      onChange={(e) => setCustomStart(e.target.value)}
+                      onChange={(event) => setCustomStart(event.target.value)}
                     />
-                  </label>
-                  <label>
-                    Through (UTC)
-                    <input
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="radio-through" className="text-muted-foreground text-xs">
+                      Through (UTC)
+                    </Label>
+                    <Input
+                      id="radio-through"
+                      aria-label="Through (UTC)"
                       type="date"
                       value={customEnd}
-                      aria-label="Through (UTC)"
                       min={firstDay}
                       max={latestDay}
-                      onChange={(e) => setCustomEnd(e.target.value)}
+                      onChange={(event) => setCustomEnd(event.target.value)}
                     />
-                  </label>
+                  </div>
                 </>
               )}
-              <Button variant="ghost" onClick={reset}>
+              <Button variant="ghost" size="xs" onClick={reset}>
                 Reset filters
               </Button>
             </section>
             <div className={styles.scope} aria-live="polite">
               {invalidRange
                 ? 'Choose a start date on or before the end date.'
-                : `${dateLabel(start)} – ${dateLabel(end)} · all times UTC`}
+                : `${dateLabel(start)} – ${dateLabel(end)} · UTC`}
               {(track || country || station) && (
                 <div className={styles.activeFilters}>
                   {[
-                    tracks.find((t) => t.key === track)?.label,
+                    tracks.find((item) => item.key === track)?.label,
                     country ? countryName(country) : '',
-                    stations.find((s) => s.key === station)?.label,
+                    stations.find((item) => item.key === station)?.label,
                   ]
                     .filter(Boolean)
-                    .join(' · ')}{' '}
-                  <button
+                    .join(' · ')}
+                  <Button
+                    variant="link"
+                    size="xs"
                     onClick={() => {
                       setTrack('');
                       setCountry('');
@@ -338,7 +316,7 @@ export function RadioDashboard() {
                     }}
                   >
                     Clear selection
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -349,25 +327,25 @@ export function RadioDashboard() {
                 ['Stations', topStations.length],
                 ['Countries', knownCountries],
               ].map(([label, value]) => (
-                <div className={styles.metric} key={label}>
+                <Card className={styles.metric} key={label}>
                   <span>{label}</span>
                   <strong data-testid={label === 'Recorded plays' ? 'play-count' : undefined}>
                     {number(Number(value))}
                   </strong>
-                </div>
+                </Card>
               ))}
             </section>
             {!selected.length ? (
-              <section className={styles.state}>
+              <div className={styles.state}>
                 <h2>No plays match these filters</h2>
                 <p>Try another date range, track, country or station.</p>
-                <Button variant="outline" onClick={reset}>
+                <Button variant="outline" size="sm" onClick={reset}>
                   Reset filters
                 </Button>
-              </section>
+              </div>
             ) : (
               <>
-                <section className={styles.card} aria-label="Play history">
+                <Card className={styles.card} role="region" aria-label="Play history">
                   <div className={styles.sectionHead}>
                     <h2>Plays over time</h2>
                     <span>Recorded plays per {series.monthly ? 'month' : 'day'}</span>
@@ -375,7 +353,7 @@ export function RadioDashboard() {
                   <div
                     className={styles.chart}
                     role="img"
-                    aria-label={`${number(selected.length)} recorded plays from ${dateLabel(start)} to ${dateLabel(end)}. Daily or monthly values are available below.`}
+                    aria-label={`${number(selected.length)} recorded plays from ${dateLabel(start)} to ${dateLabel(end)}. Chart values are available below.`}
                   >
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
@@ -383,11 +361,11 @@ export function RadioDashboard() {
                         margin={{ top: 12, right: 8, left: -20, bottom: 4 }}
                         accessibilityLayer
                       >
-                        <CartesianGrid vertical={false} stroke="#e4e9e7" />
+                        <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
                         <XAxis
                           dataKey="date"
-                          tickFormatter={(v) =>
-                            new Date(v + 'T00:00:00Z').toLocaleDateString('en-GB', {
+                          tickFormatter={(value) =>
+                            new Date(value + 'T00:00:00Z').toLocaleDateString('en-GB', {
                               day: series.monthly ? undefined : 'numeric',
                               month: 'short',
                               year: series.monthly ? '2-digit' : undefined,
@@ -397,22 +375,28 @@ export function RadioDashboard() {
                           tickLine={false}
                           axisLine={false}
                           minTickGap={32}
-                          tick={{ fontSize: 12, fill: '#63736a' }}
+                          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                         />
                         <YAxis
                           allowDecimals={false}
                           tickLine={false}
                           axisLine={false}
-                          tick={{ fontSize: 12, fill: '#63736a' }}
+                          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                         />
                         <Tooltip
-                          labelFormatter={(v) => dateLabel(String(v))}
+                          labelFormatter={(value) => dateLabel(String(value))}
                           formatter={(value) => [number(Number(value)), 'Recorded plays']}
-                          cursor={{ fill: '#edf3ef' }}
+                          cursor={{ fill: 'hsl(var(--muted))' }}
+                          contentStyle={{
+                            background: 'hsl(var(--popover))',
+                            color: 'hsl(var(--popover-foreground))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: 'var(--radius)',
+                          }}
                         />
                         <Bar
                           dataKey="plays"
-                          fill="#237450"
+                          fill="hsl(var(--chart-1))"
                           radius={[3, 3, 0, 0]}
                           maxBarSize={28}
                           isAnimationActive={false}
@@ -431,46 +415,65 @@ export function RadioDashboard() {
                       ))}
                     </div>
                   </details>
-                </section>
+                </Card>
                 <div className={styles.rankingGrid}>
                   <Ranking title="Top tracks" rows={topTracks} onSelect={setTrack} />
                   <Ranking title="Top stations" rows={topStations} onSelect={setStation} />
                   <Ranking title="Countries" rows={topCountries} onSelect={setCountry} />
                 </div>
-                <section className={styles.card} aria-label="Recent plays">
+                <Card className={styles.card} role="region" aria-label="Recent plays">
                   <div className={styles.sectionHead}>
                     <h2>Recent plays</h2>
                     <span>{number(selected.length)} in selection</span>
                   </div>
-                  <ol className={styles.feed}>
-                    {selected.slice(0, visibleCount).map((play) => (
-                      <li key={play.id}>
-                        <Link href={`${RADIO_RECORDS}?recordId=${play.id}`}>
-                          <div>
-                            <strong>{play.track}</strong>
-                            <span>
-                              {play.station} ·{' '}
-                              {[play.city, countryName(play.country)].filter(Boolean).join(', ')}
-                            </span>
-                          </div>
-                          <time dateTime={play.at}>{dateLabel(play.at, true)} UTC</time>
-                          <ArrowUpRight size={17} aria-hidden="true" />
-                        </Link>
-                      </li>
-                    ))}
-                  </ol>
+                  <div className="mb-4 overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Track / station</TableHead>
+                          <TableHead>Played at (UTC)</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selected.slice(0, visibleCount).map((play) => (
+                          <TableRow key={play.id}>
+                            <TableCell>
+                              <Link
+                                className="inline-flex items-center gap-1 font-medium hover:underline"
+                                href={`${RADIO_RECORDS}?recordId=${play.id}`}
+                              >
+                                {play.track}
+                                <ArrowUpRight className="size-3 shrink-0" />
+                              </Link>
+                              <div className="text-muted-foreground mt-1 text-xs">
+                                {play.station} ·{' '}
+                                {[play.city, countryName(play.country)].filter(Boolean).join(', ')}
+                              </div>
+                            </TableCell>
+                            <TableCell className="align-top text-xs">
+                              <time dateTime={play.at}>{dateLabel(play.at, true)}</time>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                   {visibleCount < selected.length && (
-                    <Button variant="outline" onClick={() => setVisibleCount((n) => n + 25)}>
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      onClick={() => setVisibleCount((value) => value + 25)}
+                    >
                       Show more plays
                     </Button>
                   )}
-                </section>
+                </Card>
               </>
             )}
             <footer className={styles.footer}>
               <p>
                 Counts reflect timestamped plays supplied by Songstats, not every broadcast. Days
-                with no records mean no imported plays; coverage may be incomplete.{' '}
+                without records mean no imported plays; coverage may be incomplete.{' '}
                 {data?.missingDates
                   ? `${number(data.missingDates)} records without a valid play time are excluded.`
                   : ''}
@@ -482,11 +485,11 @@ export function RadioDashboard() {
               <details>
                 <summary>Data and definitions</summary>
                 <p>
-                  Source: Radio Plays in Songstats — True Nature. Filters apply to all cards, charts
-                  and recent plays. Each record counts as one play. Tracks and stations are counted
-                  by their source IDs; countries exclude unknown locations. Default periods end on
-                  the latest imported play, not today. Reload data reads Tables; it does not fetch
-                  new Songstats data.
+                  Source: Radio Plays in Songstats — True Nature. Dashboard filters apply to all
+                  cards, charts and recent plays. Each record counts as one play. Tracks and
+                  stations are counted by their source IDs; countries exclude unknown locations.
+                  Default periods end on the latest imported play, not today. Reload reads Tables;
+                  it does not fetch new Songstats data.
                 </p>
                 <Link href={RADIO_RECORDS}>Inspect source records ↗</Link>
               </details>

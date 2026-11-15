@@ -1,4 +1,5 @@
 export const RADIO_BASE = 'bsewefS0g8rtQDeFtbt';
+export const RADIO_HOME = `/base/${RADIO_BASE}/radio`;
 export const RADIO_LOGIN = '/auth/login?redirect=%2Fradio';
 export const RADIO_TABLE = 'tbl1eE4aCNKI5keXnE0';
 export const RADIO_VIEW = 'viwCfamd2VswQTgkq5Z';

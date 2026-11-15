@@ -20,6 +20,7 @@ export interface ISelectorItem {
 }
 
 export type ISelectorProps<T = ISelectorItem> = {
+  ariaLabel?: string;
   className?: string;
   contentClassName?: string;
   readonly?: boolean;
@@ -33,6 +34,7 @@ export type ISelectorProps<T = ISelectorItem> = {
 };
 
 export const Selector: React.FC<ISelectorProps> = ({
+  ariaLabel,
   onChange,
   readonly,
   selectedId = '',
@@ -68,6 +70,7 @@ export const Selector: React.FC<ISelectorProps> = ({
           disabled={readonly || !candidates.length}
           variant="outline"
           role="combobox"
+          aria-label={ariaLabel}
           aria-expanded={open}
           className={cn('flex gap-2 font-normal px-3', className)}
         >

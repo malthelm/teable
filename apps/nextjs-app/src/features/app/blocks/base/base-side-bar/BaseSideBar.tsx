@@ -1,11 +1,13 @@
 // import { TableList } from '../../table-list/TableList';
 import { useBase } from '@teable/sdk/hooks';
-import { Button } from '@teable/ui-lib/shadcn';
+import { Button, cn } from '@teable/ui-lib/shadcn';
 import { Radio } from 'lucide-react';
 import Link from 'next/link';
-import { RADIO_BASE } from '@/features/app/radio/radio-data';
+import { useRouter } from 'next/router';
 import { BaseNodeTree } from './BaseNodeTree';
 import { BasePageRouter } from './BasePageRouter';
+import { useCloseMobileSidebarSheet } from '@/features/app/components/toggle-side-bar/SheetWrapper';
+import { RADIO_BASE, RADIO_HOME } from '@/features/app/radio/radio-data';
 
 export const BaseSideBar = (props: {
   renderWinFreeCredit?: (spaceId: string) => React.ReactNode;
@@ -13,12 +15,26 @@ export const BaseSideBar = (props: {
 }) => {
   const { renderWinFreeCredit, renderAnnouncementCard } = props;
   const base = useBase();
+  const router = useRouter();
+  const closeSidebar = useCloseMobileSidebarSheet();
   return (
     <>
       <BasePageRouter />
       {base.id === RADIO_BASE && (
-        <Button variant="ghost" className="mx-3 justify-start gap-2" asChild>
-          <Link href="/radio">
+        <Button
+          variant="ghost"
+          size="xs"
+          className={cn(
+            'mx-3 justify-start gap-2 text-sm font-normal',
+            router.asPath === RADIO_HOME && 'bg-secondary'
+          )}
+          asChild
+        >
+          <Link
+            href={RADIO_HOME}
+            onClick={closeSidebar}
+            aria-current={router.asPath === RADIO_HOME ? 'page' : undefined}
+          >
             <Radio size={16} />
             Radio dashboard
           </Link>
