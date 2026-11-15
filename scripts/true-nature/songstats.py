@@ -203,6 +203,9 @@ def field_matches(actual, expected):
 
 
 def comparable(value, kind):
+    # Teable trims single-line text on write; raw provider JSON remains untouched.
+    if kind == "singleLineText" and isinstance(value, str):
+        value = value.strip()
     if value in (None, ""):
         return None
     if kind == "date":
@@ -213,6 +216,8 @@ def comparable(value, kind):
 
 
 def apply_plan(plan, api, base_id, state_path, pressure=lambda: None, batch_size=100):
+    if not 1 <= batch_size <= 500:
+        raise ValueError("Batch size must be between 1 and 500")
     if not base_id.startswith("bse") or not base_id.isalnum():
         raise ValueError("Invalid Teable base ID")
     state_path = Path(state_path)
@@ -228,7 +233,10 @@ def apply_plan(plan, api, base_id, state_path, pressure=lambda: None, batch_size
         state = {**identity, "tables": {}, "verified": {}}
         save_state(state_path, state)
     listed = api.request("GET", f"/base/{base_id}/table")
-    if any(t.get("description") != marker or t["name"] not in plan["tables"] for t in listed):
+    if any(t["name"] not in plan["tables"] or (
+        t.get("description") != marker and not (
+            not t.get("description") and state["tables"].get(t["name"]) == t["id"]
+        )) for t in listed):
         raise ValueError("Destination contains unrelated tables")
     if len({t["name"] for t in listed}) != len(listed):
         raise ValueError("Duplicate destination table names")
@@ -248,6 +256,14 @@ def apply_plan(plan, api, base_id, state_path, pressure=lambda: None, batch_size
                 raise ValueError("Destination field differs: " + name + "." + field["name"])
         state["tables"][name] = tid
         save_state(state_path, state)
+        # Some CE create paths omit description despite accepting it in the contract.
+        # Persist the returned ID first; only our checkpointed table may be repaired.
+        if named[name].get("description") != marker:
+            pressure()
+            api.request("PUT", f"/base/{base_id}/table/{tid}/description", {"description": marker})
+            confirmed = api.request("GET", f"/base/{base_id}/table/{tid}")
+            if confirmed.get("description") != marker:
+                raise ValueError("Destination did not retain the import marker: " + name)
     for name, table in plan["tables"].items():
         tid = state["tables"][name]
         actual = {f["name"]: f for f in api.request("GET", f"/table/{tid}/field")}
@@ -329,6 +345,7 @@ def main():
     parser.add_argument("--base", help="Dedicated empty base ID")
     parser.add_argument("--state", type=Path, default=Path(".true-nature/import-state.json"))
     parser.add_argument("--resource-check", help="Optional resource-admission executable (no shell arguments)")
+    parser.add_argument("--batch-size", type=int, default=100, help="Records per request, 1–500 (byte cap still applies)")
     parser.add_argument("--schema", type=Path, help="Write schema only; does not include record values")
     args = parser.parse_args()
     plan = build_plan(args.snapshot)
@@ -353,7 +370,7 @@ def main():
     args.state.parent.mkdir(parents=True, exist_ok=True)
     with args.state.with_suffix(".lock").open("w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        apply_plan(plan, api, args.base, args.state, pressure)
+        apply_plan(plan, api, args.base, args.state, pressure, args.batch_size)
 
 
 if __name__ == "__main__":

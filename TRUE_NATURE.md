@@ -62,6 +62,7 @@ node --test scripts/true-nature/build-config.test.cjs
 corepack pnpm -r --workspace-concurrency=1 --filter './packages/**' run build
 corepack pnpm -F @teable/backend build
 NEXT_BUILD_ENV_CPUS=2 corepack pnpm -F @teable/app build
+NEXT_BUILD_ENV_CPUS=2 corepack pnpm -F @teable/plugin build
 ```
 
 Use the upstream deployment/build documentation for PostgreSQL, Redis, assets and application settings. Generate independent secrets for each environment. An installed dependency tree or successful compilation is not proof of a working deployment: verify login, a scoped token, native linked-record navigation, editing and denied access in an isolated source-built runtime before switching users.
@@ -79,6 +80,14 @@ Keep `develop` as the upstream reference and development on `true-nature`. Fetch
 5. Assess finer permissions and agent workflows against the community implementation.
 
 Commercial-image features are not assumed to exist in this source fork. The upstream `LICENSE` and `AGPL_LICENSE` remain authoritative; this fork makes no promise of unrestricted rebranding or parity with paid Teable features.
+
+## True Nature hosting
+
+The private instance is at https://tables.truenature.online, using native Pocket ID login. Dokploy owns deployment and rollback. PostgreSQL, Redis, and uploaded assets are persistent and separate from the compiled application release. Password login is disabled; access is restricted to the configured Pocket ID group.
+
+The production runtime requires OpenSSL and CA certificates, the backend static assets at `/app/static`, both Prisma migration directories, and the compiled plugin server as well as the main frontend/backend. A successful build alone is insufficient: check application health, the OIDC callback, denied anonymous record access, and the grid in a mobile browser.
+
+The Songstats adapter is a resumable snapshot import, not a scheduled sync. `--batch-size` accepts 1–500 records while retaining the payload byte limit. Verification accepts Teable's trimming of single-line text; original provider JSON remains unchanged. On CE versions that omit a table description during creation, the importer saves the returned table ID before explicitly setting and reading back its import marker. It will not repair an unmarked table absent from its checkpoint.
 
 ## Recovery
 

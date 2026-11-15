@@ -47,15 +47,24 @@ class FakeAPI:
         self.writes = 0
         self.interrupt_records_once = False
         self.interrupt_table_once = False
+        self.omit_create_description = False
 
     def request(self, method, path, body=None):
         bits = urlsplit(path).path.strip("/").split("/")
         if bits[0] == "base":
+            if len(bits) == 5 and method == "PUT":
+                self.writes += 1
+                self.tables[bits[3]]["description"] = body["description"]
+                return None
+            if len(bits) == 4 and method == "GET":
+                return self.tables[bits[3]]
             if method == "GET":
                 return list(self.tables.values())
             self.writes += 1
             tid = f"tbl{len(self.tables) + 1}"
             table = {"id": tid, **copy.deepcopy(body)}
+            if self.omit_create_description:
+                table.pop("description", None)
             table["fields"] = [{"id": f"fld{i}", **f} for i, f in enumerate(table["fields"])]
             self.tables[tid] = table
             self.rows[tid] = []
@@ -117,6 +126,26 @@ class ImportTests(unittest.TestCase):
 
     def test_second_run_has_no_writes(self):
         self.apply()
+        writes = self.api.writes
+        self.apply()
+        self.assertEqual(self.api.writes, writes)
+
+    def test_resume_accepts_server_trimmed_text_but_preserves_raw_json(self):
+        self.plan["tables"]["Artists"]["rows"][0]["fields"]["Name"] = " Example Artist  "
+        self.apply()
+        tid = next(t["id"] for t in self.api.tables.values() if t["name"] == "Artists")
+        self.api.rows[tid][0]["fields"]["Name"] = "Example Artist"
+        writes = self.api.writes
+        self.apply()
+        self.assertEqual(self.api.writes, writes)
+        self.assertEqual(s.comparable("  ", "singleLineText"), None)
+        self.assertEqual(s.comparable("  raw  ", "longText"), "  raw  ")
+
+    def test_explicitly_sets_marker_when_create_omits_description(self):
+        self.api.omit_create_description = True
+        self.apply()
+        self.assertTrue(all(t.get("description", "").endswith(self.plan["digest"])
+                            for t in self.api.tables.values()))
         writes = self.api.writes
         self.apply()
         self.assertEqual(self.api.writes, writes)
