@@ -1,5 +1,7 @@
 .page {
   height: var(--teable-content-height, 100dvh);
+  margin-top: var(--teable-safe-top, 0px);
+  margin-bottom: var(--teable-safe-bottom, 0px);
   overflow-y: auto;
   background: #f5f7f5;
   color: #20392d;
