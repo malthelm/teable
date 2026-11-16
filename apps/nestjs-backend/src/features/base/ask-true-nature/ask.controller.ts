@@ -122,7 +122,12 @@ export class AskTrueNatureController {
     if (threadId.length > 100 || runId.length > 100 || messages.length > 80)
       throw new BadRequestException('Conversation is too long. Start a new chat.');
     const history = messages
-      .filter((m) => (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+      .filter(
+        (m) =>
+          (m.role === 'user' || m.role === 'assistant') &&
+          typeof m.content === 'string' &&
+          m.content.trim().length > 0
+      )
       .slice(-16)
       .map((m) => ({ role: m.role, content: m.content as string }));
     if (

@@ -192,11 +192,12 @@
   }
   .conversation {
     flex: none;
-    min-height: min(680px, calc(var(--teable-content-height) - 48px));
+    height: calc(var(--teable-content-height) - 48px);
+    min-height: 0;
   }
   .scroll {
     padding: 16px;
-    max-height: 55dvh;
+    max-height: none;
   }
   .welcome {
     margin: 8px 0;
@@ -227,4 +228,13 @@
 
 .markdown {
   white-space: normal;
+}
+
+.mobileSources {
+  display: none;
+}
+@media (max-width: 768px) {
+  .mobileSources {
+    display: inline-flex;
+  }
 }

@@ -31,6 +31,15 @@ describe('Ask True Nature evidence', () => {
     expect(data.snapshotFetchedAt).toBe('2026-11-11T12:00:00Z');
     expect(summarizeRadio(rows, { start: '2026-11-16' }).data.matchingPlays).toBe(0);
   });
+  it('matches English country names against imported ISO country codes', () => {
+    const row = record('dk', '2026-11-10T12:00:00Z');
+    row.fields.Country = 'DK';
+    expect(summarizeRadio([row], { country: 'Denmark' }).data.matchingPlays).toBe(1);
+    expect(
+      summarizeRadio([record('name', '2026-11-10T12:00:00Z')], { country: 'DK' }).data.matchingPlays
+    ).toBe(1);
+    expect(summarizeRadio([row], { country: 'Germany' }).data.matchingPlays).toBe(0);
+  });
   it('uses UTC inclusive dates and exposes invalid dates without inventing plays', () => {
     const { data } = summarizeRadio(
       [record('a', '2026-11-11T00:30:00+02:00'), record('b', ''), record('c', 'bad')],

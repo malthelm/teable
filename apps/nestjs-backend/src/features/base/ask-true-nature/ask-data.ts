@@ -23,6 +23,16 @@ export const releaseQuery = z.object({ search: z.string().max(120).optional() })
 const str = (v: unknown) => (typeof v === 'string' ? v : '');
 const includes = (v: string, q?: string) =>
   !q || v.toLocaleLowerCase().includes(q.toLocaleLowerCase());
+const countryNames = new Intl.DisplayNames(['en'], { type: 'region' });
+const countryName = (value: string) => {
+  const code = value.toUpperCase() === 'USA' ? 'US' : value.toUpperCase() === 'UK' ? 'GB' : value;
+  return /^[a-z]{2}$/i.test(code) ? countryNames.of(code.toUpperCase()) || value : value;
+};
+const countryMatches = (value: string, query?: string) =>
+  !query ||
+  includes(value, query) ||
+  includes(countryName(value), query) ||
+  includes(countryName(value), countryName(query));
 export function summarizeRadio(
   records: { id: string; fields: Record<string, unknown> }[],
   query: z.infer<typeof radioQuery>
@@ -48,7 +58,7 @@ export function summarizeRadio(
     (p) =>
       includes(p.track, query.track) &&
       includes(p.station, query.station) &&
-      includes(p.country, query.country) &&
+      countryMatches(p.country, query.country) &&
       (!query.start || p.at.slice(0, 10) >= query.start) &&
       (!query.end || p.at.slice(0, 10) <= query.end)
   );
@@ -151,7 +161,7 @@ export const ASK_TOOLS = [
     type: 'function',
     name: 'radio_plays',
     description:
-      'Count and rank imported radio detections by track, station and country, with 20 most recent matching plays. Dates use UTC YYYY-MM-DD, inclusive. Omit filters for all imported data. Last week/month means calendar dates relative to TODAY, never the last available data window. Matching is case-insensitive substring.',
+      'Count and rank imported radio detections by track, station and country, with 20 most recent matching plays. Dates use UTC YYYY-MM-DD, inclusive. Omit filters for all imported data. Last week/month means calendar dates relative to TODAY, never the last available data window. Matching is case-insensitive substring; country accepts English names or ISO country codes.',
     parameters: {
       type: 'object',
       properties: {

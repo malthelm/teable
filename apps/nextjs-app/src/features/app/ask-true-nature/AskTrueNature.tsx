@@ -40,6 +40,8 @@ function safeSources(value: unknown): Source[] {
 export function AskTrueNature() {
   const agent = useRef<HttpAgent | undefined>(undefined);
   const bottom = useRef<HTMLDivElement>(null);
+  const sourcePanel = useRef<HTMLElement>(null);
+  const conversation = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
@@ -141,7 +143,7 @@ export function AskTrueNature() {
         </Button>
       </header>
       <div className={styles.layout}>
-        <div className={styles.conversation}>
+        <div className={styles.conversation} ref={conversation}>
           <div className={styles.scroll}>
             {!visible.length && (
               <div className={styles.welcome}>
@@ -265,26 +267,49 @@ export function AskTrueNature() {
                 </Button>
               )}
             </div>
+            {sources.length > 0 && (
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                className={styles.mobileSources}
+                onClick={() =>
+                  sourcePanel.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+                }
+              >
+                View {sources.length} sources
+              </Button>
+            )}
             <p className={styles.note}>
               Read-only · Check source records before acting · Chat clears when you leave this page
             </p>
           </form>
         </div>
-        <aside className={styles.sources} aria-label="Sources for latest answer">
+        <aside ref={sourcePanel} className={styles.sources} aria-label="Sources for latest answer">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={styles.mobileSources}
+            onClick={() =>
+              conversation.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+            }
+          >
+            ← Back to chat
+          </Button>
           <h2>Sources for this answer</h2>
           {sources.length ? (
             sources.map((s) => (
               <Card key={s.id}>
                 <CardContent className="p-3">
-                  <a
+                  <Link
                     href={s.href}
-                    target="_blank"
+                    target={s.href.startsWith('https:') ? '_blank' : undefined}
                     rel="noreferrer"
                     className="flex items-start justify-between gap-2 text-sm font-medium hover:underline"
                   >
                     {s.title}
                     <ExternalLink size={14} className="mt-1 shrink-0" />
-                  </a>
+                  </Link>
                   <p className={styles.sourceDetail}>{s.detail}</p>
                 </CardContent>
               </Card>
