@@ -58,4 +58,44 @@ describe('Songstats connection boundaries', () => {
     expect(stored.enabled).toBe(true);
     expect(stored.requestedAt).toBeTruthy();
   });
+  it.each([401, 403, 429, 503])(
+    'reports HTTP %s without retaining or echoing the submitted key',
+    async (status) => {
+      cls.get.mockImplementation((k) => k === 'user.isAdmin');
+      const fetcher = vi
+        .fn()
+        .mockResolvedValue({ ok: false, status, headers: new Headers([['retry-after', '120']]) });
+      vi.stubGlobal('fetch', fetcher);
+      await expect(controller.connect(ASK_BASE, { apiKey: 'private-failed-key' })).rejects.toThrow(
+        `HTTP ${status}`
+      );
+      const diagnostic = await readFile(join(dir, 'connection-attempt.json'), 'utf8');
+      expect(diagnostic).not.toContain('private-failed-key');
+      expect(JSON.parse(diagnostic)).toMatchObject({
+        phase: 'label access',
+        httpStatus: status,
+        success: false,
+      });
+      expect(JSON.parse(await readFile(join(dir, 'config.json'), 'utf8')).apiKey).toBe(
+        'saved-test-key'
+      );
+      if (status === 429) {
+        controller['lastConnect'] = 0;
+        await expect(
+          controller.connect(ASK_BASE, { apiKey: 'private-failed-key' })
+        ).rejects.toThrow('wait');
+        expect(fetcher).toHaveBeenCalledTimes(1);
+      }
+    }
+  );
+  it('distinguishes an unexpected provider response from a bad key', async () => {
+    cls.get.mockImplementation((k) => k === 'user.isAdmin');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}) })
+    );
+    await expect(controller.connect(ASK_BASE, { apiKey: 'private-failed-key' })).rejects.toThrow(
+      'integration issue'
+    );
+  });
 });
