@@ -1,0 +1,40 @@
+{
+  "importedAt": "2026-11-16T06:08:02.061Z",
+  "tables": {
+    "artists": {
+      "tableId": "tbloS498QuxUcoh6m5a",
+      "viewId": "viwXCpTd2D578rTkiXW",
+      "sourceBase": "appoKM3ylTDhR60LY",
+      "sourceTable": "tblBtld36JxMyqeVF",
+      "count": 12
+    },
+    "fundProjects": {
+      "tableId": "tbltZdQL6mEnIFaSCcf",
+      "viewId": "viwm0Y6WZpOMc55zMnk",
+      "sourceBase": "app26JltxTyf40Fcp",
+      "sourceTable": "tblm1kNkwrWZcB3LN",
+      "count": 8
+    },
+    "funding": {
+      "tableId": "tbl7sOUtZFdyN6yejo3",
+      "viewId": "viwagCHMFiWmhMZPZBR",
+      "sourceBase": "app26JltxTyf40Fcp",
+      "sourceTable": "tblrPFtJQpvNUJgDp",
+      "count": 46
+    },
+    "masters": {
+      "tableId": "tblsLNBcK2Tb1sOQSXR",
+      "viewId": "viwO7iJQFIaHZ0sx7Mg",
+      "sourceBase": "appoKM3ylTDhR60LY",
+      "sourceTable": "tbl2ViVaIBwnkyp6Q",
+      "count": 133
+    },
+    "stations": {
+      "tableId": "tblMuxvZA7PqydaLUqZ",
+      "viewId": "viwFmZAsGuKEh8j5p5w",
+      "sourceBase": "appoKM3ylTDhR60LY",
+      "sourceTable": "tblBILfWC6Vex2sUc",
+      "count": 507
+    }
+  }
+}

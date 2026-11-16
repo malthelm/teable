@@ -1,7 +1,7 @@
 // import { TableList } from '../../table-list/TableList';
 import { useBase } from '@teable/sdk/hooks';
 import { Button, cn } from '@teable/ui-lib/shadcn';
-import { Disc3, Radio } from 'lucide-react';
+import { BarChart3, Disc3, Radio } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { BaseNodeTree } from './BaseNodeTree';
@@ -57,6 +57,25 @@ export const BaseSideBar = (props: {
           >
             <Disc3 size={16} />
             Releases
+          </Link>
+        </Button>
+      )}
+      {base.id === RADIO_BASE && (
+        <Button
+          variant="ghost"
+          size="xs"
+          className={cn(
+            'mx-3 justify-start gap-2 text-sm font-normal',
+            router.pathname.endsWith('/insights') && 'bg-secondary'
+          )}
+          asChild
+        >
+          <Link
+            href={`/base/${RADIO_BASE}/insights`}
+            onClick={closeSidebar}
+            aria-current={router.pathname.endsWith('/insights') ? 'page' : undefined}
+          >
+            <BarChart3 size={16} /> Airtable dashboards
           </Link>
         </Button>
       )}
