@@ -206,7 +206,7 @@ export function AirtableDashboards() {
               id="dashboard-search"
               placeholder={
                 view === 'catalog'
-                  ? 'Track, artist or ISRC…'
+                  ? 'Recording or ISRC…'
                   : view === 'funding'
                     ? 'Grant, project or action…'
                     : 'Station, country or city…'
