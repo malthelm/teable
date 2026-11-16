@@ -105,6 +105,12 @@ importers:
 
   apps/nestjs-backend:
     dependencies:
+      '@ag-ui/core':
+        specifier: 1.0.4
+        version: 1.0.4(zod@4.6.7)
+      '@ag-ui/encoder':
+        specifier: 1.0.4
+        version: 1.0.4(zod@4.6.7)
       '@ai-sdk/amazon-bedrock':
         specifier: 5.0.125
         version: 5.0.125(zod@4.6.7)
@@ -814,6 +820,9 @@ importers:
 
   apps/nextjs-app:
     dependencies:
+      '@ag-ui/client':
+        specifier: 1.0.4
+        version: 1.0.4(zod@4.6.7)
       '@asteasolutions/zod-to-openapi':
         specifier: 8.1.0
         version: 8.1.0(zod@4.6.7)
@@ -5049,6 +5058,29 @@ packages:
   '@adobe/css-tools@4.4.1':
     resolution: {integrity: sha512-12WGKBQzjUAI4ayyF4IAtfw2QR/IDoqk6jTddXDhtYTJF9ASmoE1zst7cVtP0aL/F1jUJL5r+JxKXKEgHNbEUQ==}
 
+  '@ag-ui/client@1.0.4':
+    resolution: {integrity: sha512-bACZj5CG/B6coQL54/LT0b29RjoyZf7k+XTs1c4+PBpsZbCYCNQ/TVDE5ffvmZvZ4NnH2Zc+JjbIeGdNdYJu8w==}
+    peerDependencies:
+      zod: ^3.25.18 || ^4.0.0
+
+  '@ag-ui/core@1.0.4':
+    resolution: {integrity: sha512-Z/G3UXYRyZ/1LcOtCCf6RJiFPTjRqaNublW/kQ7wsfiP4Qw5oIVmvO6NkUQYoqCoMXuXggyD3MMH2Td5OVKECQ==}
+    peerDependencies:
+      zod: ^3.25.18 || ^4.0.0
+    peerDependenciesMeta:
+      zod:
+        optional: true
+
+  '@ag-ui/encoder@1.0.4':
+    resolution: {integrity: sha512-fq5kqj+kCFtpLhBhfLjv55DRTKdbduFg6Wcsw4VL3uCABSQhH+PLC36vMjbjZdDp9q+mgVrGhRvaW+JdkdfVog==}
+    peerDependencies:
+      zod: ^3.25.18 || ^4.0.0
+
+  '@ag-ui/proto@1.0.4':
+    resolution: {integrity: sha512-+OAa2w1ELijSwNgNGvMDCIx5rFO+1NQDpwzoq1oXwE4L0qWciZnhIisocVzAKjtH7Ac/ONSyYR1t4qG3kMzRkw==}
+    peerDependencies:
+      zod: ^3.25.18 || ^4.0.0
+
   '@ai-sdk/amazon-bedrock@5.0.125':
     resolution: {integrity: sha512-dDAYBVerrnP9a49pN+KNIjjvyKixSc9ZZa442hEbfW/acR7OenQ6dBNb3txQkDCwUePELiJ35iz/3sw1cVLReg==}
     engines: {node: '>=22'}
@@ -5930,6 +5962,9 @@ packages:
 
   '@borewit/text-codec@0.2.2':
     resolution: {integrity: sha512-DDaRehssg1aNrH4+2hnj1B7vnUGEjU6OIlyRdkMd0aUdIUvKXrJfXsy8LVtXAy7DRvYVluWbMspsRhz2lcW0mQ==}
+
+  '@bufbuild/protobuf@2.17.0':
+    resolution: {integrity: sha512-hcPkSz6D7MiTU/5VBBhK+kxaYDoOdQ6yJRFJ3kS8Nydp+VZXfg1vrpABKPNod8bXMufsVCmiUJVIKFzCzta4uw==}
 
   '@codemirror/autocomplete@6.15.0':
     resolution: {integrity: sha512-G2Zm0mXznxz97JhaaOdoEG2cVupn4JjPaS4AcNvZzhOsnnG9YVN68VzfoUw6dYTsIxT6a/cmoFEN47KAWhXaOg==}
@@ -9307,6 +9342,10 @@ packages:
     peerDependencies:
       '@opentelemetry/api': ^1.8
 
+  '@protobuf-ts/protoc@2.11.1':
+    resolution: {integrity: sha512-mUZJaV0daGO6HUX90o/atzQ6A7bbN2RSuHtdwo8SSF2Qoe3zHwa4IHyCN1evftTeHfLmdz+45qo47sL+5P8nyg==}
+    hasBin: true
+
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
 
@@ -11980,6 +12019,9 @@ packages:
   '@types/use-sync-external-store@0.0.6':
     resolution: {integrity: sha512-zFDAD+tlpf2r4asuHEj0XH6pY6i0g5NeAHPn+15wk3BV6JA69eERFXC1gyGThDkVa1zCyKr5jox1+2LbV/AMLg==}
 
+  '@types/uuid@10.0.0':
+    resolution: {integrity: sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==}
+
   '@types/uuid@9.0.8':
     resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
 
@@ -13188,6 +13230,9 @@ packages:
   compare-func@2.0.0:
     resolution: {integrity: sha512-zHig5N+tPWARooBnb0Zx1MFcdfpyJrfTJ3Y5L+IFvUm8rM74hHz66z0gw0x4tijh5CorKkKUCnW82R2vmpeCRA==}
 
+  compare-versions@6.1.1:
+    resolution: {integrity: sha512-4hm4VPpIecmlg59CHXnRDnqGplJFrbLG4aFEl5vl6cK1u76ws3LLvX7ikFnTDl5vo39sjWD6AaDPYodJp/NNHg==}
+
   compress-commons@6.0.2:
     resolution: {integrity: sha512-6FqVXeETqWPoGcfzrXb37E50NP0LXT8kAMu5ooZayhWWdgEY4lBEEcbQNXtkuKQsGduxiIcI4gOTsxTmuq/bSg==}
     engines: {node: '>= 14'}
@@ -14325,6 +14370,9 @@ packages:
 
   fast-json-parse@1.0.3:
     resolution: {integrity: sha512-FRWsaZRWEJ1ESVNbDWmsAlqDk96gPQezzLghafp5J4GUKjbCz3OkAHuZs5TuPEtkbVQERysLp9xv6c24fBm8Aw==}
+
+  fast-json-patch@3.1.1:
+    resolution: {integrity: sha512-vf6IHUX2SBcA+5/+4883dsIjpBTqmfBjmYiWK1savxQmFk4JfBMLa7ynTYOs1Rolp/T1betJxHiGD3g1Mn8lUQ==}
 
   fast-json-stable-stringify@2.1.0:
     resolution: {integrity: sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==}
@@ -19768,6 +19816,9 @@ packages:
       synckit:
         optional: true
 
+  untruncate-json@0.0.1:
+    resolution: {integrity: sha512-4W9enDK4X1y1s2S/Rz7ysw6kDuMS3VmRjMFg7GZrNO+98OSe+x5Lh7PKYoVjy3lW/1wmhs6HW0lusnQRHgMarA==}
+
   unzipper@0.12.3:
     resolution: {integrity: sha512-PZ8hTS+AqcGxsaQntl3IRBw65QrBI6lxzqDEL7IAo/XCEqRTKGfOX56Vea5TH9SZczRVxuzk1re04z/YjuYCJA==}
 
@@ -20369,6 +20420,36 @@ snapshots:
     optional: true
 
   '@adobe/css-tools@4.4.1': {}
+
+  '@ag-ui/client@1.0.4(zod@4.6.7)':
+    dependencies:
+      '@ag-ui/core': 1.0.4(zod@4.6.7)
+      '@ag-ui/encoder': 1.0.4(zod@4.6.7)
+      '@ag-ui/proto': 1.0.4(zod@4.6.7)
+      '@types/uuid': 10.0.0
+      compare-versions: 6.1.1
+      fast-json-patch: 3.1.1
+      rxjs: 7.8.1
+      untruncate-json: 0.0.1
+      uuid: 11.1.1
+      zod: 4.6.7
+
+  '@ag-ui/core@1.0.4(zod@4.6.7)':
+    optionalDependencies:
+      zod: 4.6.7
+
+  '@ag-ui/encoder@1.0.4(zod@4.6.7)':
+    dependencies:
+      '@ag-ui/core': 1.0.4(zod@4.6.7)
+      '@ag-ui/proto': 1.0.4(zod@4.6.7)
+      zod: 4.6.7
+
+  '@ag-ui/proto@1.0.4(zod@4.6.7)':
+    dependencies:
+      '@ag-ui/core': 1.0.4(zod@4.6.7)
+      '@bufbuild/protobuf': 2.17.0
+      '@protobuf-ts/protoc': 2.11.1
+      zod: 4.6.7
 
   '@ai-sdk/amazon-bedrock@5.0.125(zod@4.6.7)':
     dependencies:
@@ -21563,6 +21644,8 @@ snapshots:
   '@belgattitude/http-exception@1.5.0': {}
 
   '@borewit/text-codec@0.2.2': {}
+
+  '@bufbuild/protobuf@2.17.0': {}
 
   '@codemirror/autocomplete@6.15.0(@codemirror/language@6.10.1)(@codemirror/state@6.4.1)(@codemirror/view@6.26.0)(@lezer/common@1.5.1)':
     dependencies:
@@ -24975,6 +25058,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@protobuf-ts/protoc@2.11.1': {}
+
   '@protobufjs/aspromise@1.1.2': {}
 
   '@protobufjs/base64@1.1.2': {}
@@ -27800,6 +27885,8 @@ snapshots:
 
   '@types/use-sync-external-store@0.0.6': {}
 
+  '@types/uuid@10.0.0': {}
+
   '@types/uuid@9.0.8': {}
 
   '@types/validator@13.15.0': {}
@@ -29120,6 +29207,8 @@ snapshots:
     dependencies:
       array-ify: 1.0.0
       dot-prop: 5.3.0
+
+  compare-versions@6.1.1: {}
 
   compress-commons@6.0.2:
     dependencies:
@@ -30477,6 +30566,8 @@ snapshots:
       micromatch: 4.0.8
 
   fast-json-parse@1.0.3: {}
+
+  fast-json-patch@3.1.1: {}
 
   fast-json-stable-stringify@2.1.0: {}
 
@@ -36807,6 +36898,8 @@ snapshots:
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
+
+  untruncate-json@0.0.1: {}
 
   unzipper@0.12.3(patch_hash=ab304933afaf08ae64ce42dc432d0adfc13cc94d0964980787469fd3fc92d982):
     dependencies:

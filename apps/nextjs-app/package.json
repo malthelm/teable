@@ -91,6 +91,7 @@
     "vitest": "4.1.12"
   },
   "dependencies": {
+    "@ag-ui/client": "1.0.4",
     "@asteasolutions/zod-to-openapi": "8.1.0",
     "@belgattitude/http-exception": "1.5.0",
     "@codemirror/autocomplete": "6.15.0",

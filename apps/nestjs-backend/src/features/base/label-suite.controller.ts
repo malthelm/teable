@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Header,
+  Injectable,
   NotFoundException,
   Param,
   ServiceUnavailableException,
@@ -11,14 +12,11 @@ import { Pool } from 'pg';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 
 /** A read-only integration. The database role can SELECT only the scoped projection view. */
-@Controller('api/base/:baseId/label-suite')
-export class LabelSuiteController implements OnModuleDestroy {
+@Injectable()
+export class LabelSuiteReader implements OnModuleDestroy {
   private pool?: Pool;
 
-  @Get('releases')
-  @Header('Cache-Control', 'private, no-store')
-  @Permissions('base|read')
-  async releases(@Param('baseId') baseId: string) {
+  async releases(baseId: string) {
     if (!process.env.LABEL_SUITE_BASE_ID || baseId !== process.env.LABEL_SUITE_BASE_ID) {
       throw new NotFoundException();
     }
@@ -54,5 +52,17 @@ export class LabelSuiteController implements OnModuleDestroy {
 
   async onModuleDestroy() {
     await this.pool?.end();
+  }
+}
+
+@Controller('api/base/:baseId/label-suite')
+export class LabelSuiteController {
+  constructor(private readonly reader: LabelSuiteReader) {}
+
+  @Get('releases')
+  @Header('Cache-Control', 'private, no-store')
+  @Permissions('base|read')
+  releases(@Param('baseId') baseId: string) {
+    return this.reader.releases(baseId);
   }
 }

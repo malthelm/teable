@@ -19,6 +19,7 @@ import { TableDuplicateService } from '../table/table-duplicate.service';
 import { TableModule } from '../table/table.module';
 import { V2Module } from '../v2/v2.module';
 import { ViewOpenApiModule } from '../view/open-api/view-open-api.module';
+import { AskTrueNatureController } from './ask-true-nature/ask.controller';
 import { BaseDataDbMoveService } from './base-data-db-move.service';
 import { BaseDuplicatePreviewRegistrar } from './base-duplicate-preview.service';
 import { BaseDuplicateV2Service } from './base-duplicate-v2.service';
@@ -34,10 +35,10 @@ import { BasePersonalOrderService } from './base-personal-order.service';
 import { BaseQueryService } from './base-query/base-query.service';
 import { BaseController } from './base.controller';
 import { BaseService } from './base.service';
-import { LabelSuiteController } from './label-suite.controller';
+import { LabelSuiteController, LabelSuiteReader } from './label-suite.controller';
 
 @Module({
-  controllers: [BaseController, LabelSuiteController],
+  controllers: [BaseController, LabelSuiteController, AskTrueNatureController],
   imports: [
     CanaryModule,
     CollaboratorModule,
@@ -62,6 +63,7 @@ import { LabelSuiteController } from './label-suite.controller';
     SpaceDataDbMigrationGuardModule,
   ],
   providers: [
+    LabelSuiteReader,
     DbProvider,
     BaseService,
     BasePersonalOrderService,
