@@ -2,6 +2,7 @@
  * Credentials and run journals live in a private mounted directory, never in this tree.
  * --snapshot DIR --once imports a complete authorized MCP capture using the same pipeline.
  */
+import oauth from './songstats-oauth.cjs';
 import { createHash, randomUUID } from 'node:crypto';
 import { readFile, writeFile, rename, mkdir, open, unlink, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -215,14 +216,18 @@ async function run(dir, config, snapshot) {
   try {
     const runDir = join(dir, 'runs', started.replaceAll(':', '-'));
     await mkdir(runDir, { recursive: true, mode: 0o700 });
+    let oauthProvider;
+    if (!snapshot && config.connectionType === 'oauth') oauthProvider = await oauth.createProvider(dir);
     const provider = async (id, offset) => {
       const filename = `${id === 'catalog' ? 'catalog' : id}-${offset}.json`;
       if (snapshot) return readJSON(join(snapshot, filename));
+      if (oauthProvider) return oauthProvider(id, offset);
       const path = id === 'catalog' ? '/labels/catalog' : '/tracks/stats';
       const query = songstatsQuery(id, offset);
       return request(`https://api.songstats.com/enterprise/v1${path}?${query}`, { headers: { apikey: config.apiKey } });
     };
-    const captured = await capture(provider);
+    let captured;
+    try { captured = await capture(provider); } finally { await oauthProvider?.close().catch(() => {}); }
     for (const item of captured.responses) await atomic(join(runDir, item.file), item.data);
     const fetchedAt = snapshot ? new Date((await stat(join(snapshot, 'catalog-0.json'))).mtime).toISOString() : iso();
     const journalFile = await open(join(runDir, 'journal.jsonl'), 'a', 0o600);
@@ -236,8 +241,8 @@ async function run(dir, config, snapshot) {
     process.stdout.write(JSON.stringify({ event: 'complete', ...result }) + '\n');
   } catch (error) {
     clearInterval(heartbeat);
-    const delay = error instanceof SyncError ? error.delay : HOUR;
-    const message = error instanceof SyncError ? error.message : 'The update could not finish. Retained records are safe; check the connection and retry.';
+    const delay = error instanceof SyncError ? error.delay : error instanceof oauth.OAuthError ? error.retryAfter : HOUR;
+    const message = error instanceof SyncError || error instanceof oauth.OAuthError ? error.message : 'The update could not finish. Retained records are safe; check the connection and retry.';
     await atomic(statePath, { ...state, running: false, lastAttempt: started, heartbeat: iso(), lastError: message, nextRun: new Date(Date.now() + delay).toISOString(), blockedUntil: new Date(Date.now() + delay).toISOString(), handledRequest: config.requestedAt || null });
     process.stdout.write(JSON.stringify({ event: 'failed', message }) + '\n');
     if (snapshot) throw new SyncError(message);
@@ -257,7 +262,7 @@ async function main() {
     const state = await readJSON(join(dir, 'status.json'), {});
     const requested = config.requestedAt && config.requestedAt !== state.handledRequest;
     const allowed = !state.blockedUntil || Date.now() >= Date.parse(state.blockedUntil);
-    if (snapshot || (config.apiKey && config.enabled && allowed && (requested || !state.nextRun || Date.now() >= Date.parse(state.nextRun)))) await run(dir, config, snapshot);
+    if (snapshot || ((config.connectionType === 'oauth' || config.apiKey) && config.enabled && allowed && (requested || !state.nextRun || Date.now() >= Date.parse(state.nextRun)))) await run(dir, config, snapshot);
     else await atomic(join(dir, 'status.json'), { ...state, heartbeat: iso() });
     if (process.argv.includes('--once')) break;
     await new Promise(resolve => setTimeout(resolve, 60000));

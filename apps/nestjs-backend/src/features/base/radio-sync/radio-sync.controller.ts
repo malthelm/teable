@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { readFile, writeFile, rename } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import {
   BadRequestException,
@@ -11,12 +12,31 @@ import {
   NotFoundException,
   Param,
   Post,
+  Query,
+  Req,
+  Res,
 } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { ClsService } from 'nestjs-cls';
 import type { IClsStore } from '../../../types/cls';
 import { Permissions } from '../../auth/decorators/permissions.decorator';
 import { ASK_BASE } from '../ask-true-nature/ask-data';
 
+interface IOAuthRuntime {
+  errorMessage(error: unknown): string;
+  begin(dir: string, userId: string, session: string): Promise<string>;
+  complete(
+    dir: string,
+    query: Record<string, unknown>,
+    userId: string,
+    session: string
+  ): Promise<boolean>;
+  disconnect(dir: string): Promise<void>;
+}
+const oauthRuntime = () =>
+  createRequire(__filename)(
+    join(process.cwd(), 'scripts/true-nature/songstats-oauth.cjs')
+  ) as IOAuthRuntime;
 const directory = () => process.env.TRUE_NATURE_RADIO_SYNC_DIR;
 async function read(name: string) {
   const dir = directory();
@@ -34,17 +54,28 @@ async function save(config: Record<string, unknown>) {
   await writeFile(temporary, JSON.stringify(config), { mode: 0o600 });
   await rename(temporary, join(dir, 'config.json'));
 }
+// eslint-disable-next-line sonarjs/cognitive-complexity -- Explicit safe status projection without credential fields.
 export async function radioSyncStatus() {
-  const [config, state] = await Promise.all([read('config.json'), read('status.json')]);
+  const [config, state, oauth] = await Promise.all([
+    read('config.json'),
+    read('status.json'),
+    read('oauth-tokens.json'),
+  ]);
+  const connected =
+    config.connectionType === 'oauth'
+      ? Boolean(oauth.refreshToken && !oauth.reconnectRequired)
+      : Boolean(config.apiKey);
   // Explicit allowlist: credentials and internal responses must never leave the server.
   return {
-    connected: Boolean(config.apiKey),
-    enabled: Boolean(config.apiKey && config.enabled),
+    connected,
+    connectionType: config.connectionType === 'oauth' ? 'oauth' : 'apiKey',
+    reconnectRequired: Boolean(config.connectionType === 'oauth' && oauth.reconnectRequired),
+    enabled: Boolean(connected && config.enabled),
     intervalMinutes: 60,
     running: Boolean(state.running && Date.now() - Date.parse(state.lastAttempt) < 30 * 60000),
     lastAttempt: state.lastAttempt || null,
     lastSuccess: state.lastSuccess || null,
-    nextRun: config.apiKey && config.enabled ? state.nextRun || null : null,
+    nextRun: connected && config.enabled ? state.nextRun || null : null,
     lastError: state.lastError || null,
     addedPlays: state.addedPlays ?? null,
     totalPlays: state.totalPlays ?? null,
@@ -77,7 +108,73 @@ export class RadioSyncController {
   @Permissions('base|read')
   async status(@Param('baseId') baseId: string) {
     this.scope(baseId);
-    return { ...(await radioSyncStatus()), canManage: Boolean(this.cls.get('user.isAdmin')) };
+    const canManage = Boolean(this.cls.get('user.isAdmin'));
+    const attempt = canManage ? await read('oauth-attempt.json') : {};
+    return { ...(await radioSyncStatus()), canManage, oauthLastError: attempt.error || null };
+  }
+  @Post('oauth/start')
+  @Header('Cache-Control', 'private, no-store')
+  @Permissions('base|update')
+  async startOAuth(@Param('baseId') baseId: string, @Req() req: Request) {
+    this.scope(baseId, true);
+    if (!directory() || !req.sessionID)
+      throw new BadRequestException('Please sign in to Teable again.');
+    try {
+      return {
+        url: await oauthRuntime().begin(directory()!, this.cls.get('user.id'), req.sessionID),
+      };
+    } catch {
+      throw new BadRequestException('Songstats sign-in could not start. Please try again later.');
+    }
+  }
+  @Get('oauth/callback')
+  @Header('Cache-Control', 'private, no-store')
+  @Header('Referrer-Policy', 'no-referrer')
+  @Permissions('base|update')
+  async oauthCallback(
+    @Param('baseId') baseId: string,
+    @Query() query: Record<string, unknown>,
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
+    this.scope(baseId, true);
+    let result = 'failed';
+    if (directory() && req.sessionID) {
+      try {
+        await oauthRuntime().complete(directory()!, query, this.cls.get('user.id'), req.sessionID);
+        result = 'connected';
+        await writeFile(
+          join(directory()!, 'oauth-attempt.json'),
+          JSON.stringify({ at: new Date().toISOString(), connected: true }),
+          { mode: 0o600 }
+        ).catch(() => undefined);
+      } catch (error) {
+        // The redirect never carries provider errors, authorization codes or tokens.
+        result = query.error === 'access_denied' ? 'cancelled' : 'failed';
+        await writeFile(
+          join(directory()!, 'oauth-attempt.json'),
+          JSON.stringify({
+            at: new Date().toISOString(),
+            error: oauthRuntime().errorMessage(error),
+          }),
+          { mode: 0o600 }
+        ).catch(() => undefined);
+      }
+    }
+    res.redirect(303, `/base/${ASK_BASE}/radio?songstats=${result}`);
+  }
+  @Post('oauth/disconnect')
+  @Permissions('base|update')
+  async disconnectOAuth(@Param('baseId') baseId: string) {
+    this.scope(baseId, true);
+    try {
+      await oauthRuntime().disconnect(directory()!);
+    } catch {
+      throw new BadRequestException(
+        'Disconnected locally. Also remove True Nature Tables in Songstats Account Settings → AI Connections to finish revoking access.'
+      );
+    }
+    return { connected: false };
   }
   @Post('connect')
   @Header('Cache-Control', 'private, no-store')
@@ -136,7 +233,13 @@ export class RadioSyncController {
       phase = 'credential storage';
       failure =
         'Songstats accepted the key, but Teable could not save the connection. Please contact the workspace administrator.';
-      await save({ ...config, apiKey, enabled: true, requestedAt: new Date().toISOString() });
+      await save({
+        ...config,
+        apiKey,
+        connectionType: 'apiKey',
+        enabled: true,
+        requestedAt: new Date().toISOString(),
+      });
       // Diagnostic metadata is separate from credentials and contains no response bodies.
       await this.recordAttempt({ attemptId, phase: 'connected', httpStatus, success: true });
     } catch (error) {
@@ -174,7 +277,8 @@ export class RadioSyncController {
   async refresh(@Param('baseId') baseId: string) {
     this.scope(baseId, true);
     const config = await read('config.json');
-    if (!config.apiKey) throw new BadRequestException('Connect Songstats first.');
+    if (!(await radioSyncStatus()).connected)
+      throw new BadRequestException('Connect Songstats first.');
     await save({ ...config, enabled: true, requestedAt: new Date().toISOString() });
     return { queued: true };
   }

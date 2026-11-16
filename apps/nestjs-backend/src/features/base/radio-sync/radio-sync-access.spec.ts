@@ -99,4 +99,30 @@ describe('Songstats connection boundaries', () => {
       'integration issue'
     );
   });
+  it('exposes OAuth readiness without exposing either token', async () => {
+    await writeFile(
+      join(dir, 'config.json'),
+      JSON.stringify({ connectionType: 'oauth', enabled: true })
+    );
+    await writeFile(
+      join(dir, 'oauth-tokens.json'),
+      JSON.stringify({ accessToken: 'secret-access-test', refreshToken: 'secret-refresh-test' })
+    );
+    const status = await radioSyncStatus();
+    expect(status.connected).toBe(true);
+    expect(status.connectionType).toBe('oauth');
+    expect(JSON.stringify(status)).not.toContain('secret-');
+    await writeFile(
+      join(dir, 'oauth-tokens.json'),
+      JSON.stringify({ refreshToken: 'secret-refresh-test', reconnectRequired: true })
+    );
+    expect((await radioSyncStatus()).enabled).toBe(false);
+  });
+  it('protects OAuth start, callback and disconnect with the same administrator boundary', async () => {
+    await expect(controller.startOAuth(ASK_BASE, {} as never)).rejects.toThrow();
+    await expect(
+      controller.oauthCallback(ASK_BASE, {}, {} as never, {} as never)
+    ).rejects.toThrow();
+    await expect(controller.disconnectOAuth(ASK_BASE)).rejects.toThrow();
+  });
 });

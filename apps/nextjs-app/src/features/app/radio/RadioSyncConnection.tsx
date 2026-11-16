@@ -8,11 +8,15 @@ import {
   Input,
   Label,
 } from '@teable/ui-lib/shadcn';
+import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import { RADIO_BASE } from './radio-data';
 
 const endpoint = `/api/base/${RADIO_BASE}/radio-sync`;
 interface SyncStatus {
+  connectionType: 'oauth' | 'apiKey';
+  reconnectRequired: boolean;
+  oauthLastError: string | null;
   coverageWarnings: string[];
   connected: boolean;
   enabled: boolean;
@@ -32,6 +36,7 @@ export function RadioSyncConnection({
   onUpdated?: () => void;
   manage?: boolean;
 }) {
+  const router = useRouter();
   const [status, setStatus] = useState<SyncStatus>();
   const [open, setOpen] = useState(false);
   const [key, setKey] = useState('');
@@ -65,7 +70,7 @@ export function RadioSyncConnection({
       clearInterval(timer);
     };
   }, []);
-  async function action(name: 'connect' | 'refresh' | 'pause') {
+  async function action(name: 'connect' | 'refresh' | 'pause' | 'oauth/disconnect') {
     if (busy) return;
     setBusy(true);
     setError('');
@@ -86,13 +91,51 @@ export function RadioSyncConnection({
       }
       await load();
       setNotice(
-        name === 'pause'
-          ? 'Automatic checks paused. A running update may finish.'
-          : 'Update queued. The worker checks for requests every minute; rate-limit waits still apply.'
+        name === 'oauth/disconnect'
+          ? 'Songstats disconnected. Automatic updates are off.'
+          : name === 'pause'
+            ? 'Automatic checks paused. A running update may finish.'
+            : 'Update queued. The worker checks for requests every minute; rate-limit waits still apply.'
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : 'The connection could not be updated.');
     } finally {
+      setBusy(false);
+    }
+  }
+  useEffect(() => {
+    if (!manage || typeof router.query.songstats !== 'string') return;
+    const result = router.query.songstats;
+    setOpen(true);
+    if (result === 'connected') setNotice('Songstats connected. The first radio update is queued.');
+    else
+      setError(
+        result === 'cancelled'
+          ? 'Sign-in cancelled. The saved connection has not changed.'
+          : 'Songstats sign-in could not be completed. Please check the connection details below.'
+      );
+    const { songstats: _result, ...query } = router.query;
+    void router.replace({ pathname: router.pathname, query }, undefined, { shallow: true });
+  }, [router, router.query, router.pathname, manage]);
+  async function connectOAuth() {
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const response = await fetch(`${endpoint}/oauth/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+      const data = await response.json();
+      if (!response.ok || typeof data.url !== 'string')
+        throw new Error(data.message || 'Songstats sign-in could not start.');
+      const url = new URL(data.url);
+      if (url.origin !== 'https://api.songstats.com' || url.pathname !== '/oauth/authorize')
+        throw new Error('Unexpected sign-in destination.');
+      window.location.assign(url.href);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Songstats sign-in could not start.');
       setBusy(false);
     }
   }
@@ -140,7 +183,7 @@ export function RadioSyncConnection({
           }
         }}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-h-[85dvh] max-w-md overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Songstats connection</DialogTitle>
             <DialogDescription>
@@ -148,40 +191,61 @@ export function RadioSyncConnection({
             </DialogDescription>
           </DialogHeader>
           <p className="text-muted-foreground text-sm">
-            Enter an existing Songstats API key with access to the True Nature label. It is sent
-            over HTTPS and stored in a restricted file on your server. It is never returned to the
-            browser or included in assistant requests.
+            Sign in to Songstats and approve read-only access for True Nature Tables. No API key is
+            needed. Your server keeps the connection refreshed for hourly updates.
           </p>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void action('connect');
-            }}
-            className="space-y-3"
-          >
-            <Label htmlFor="songstats-api-key">
-              {status?.connected ? 'Replace API key' : 'Songstats API key'}
-            </Label>
-            <Input
-              id="songstats-api-key"
-              type="password"
-              autoComplete="off"
-              spellCheck={false}
-              value={key}
-              onChange={(event) => setKey(event.target.value)}
-              maxLength={2048}
-              disabled={busy}
-              required
-              className="text-base"
-            />
+          <Button disabled={busy} onClick={() => void connectOAuth()}>
+            {busy
+              ? 'Connecting…'
+              : status?.connected && status.connectionType === 'oauth'
+                ? 'Reconnect with Songstats'
+                : 'Connect with Songstats'}
+          </Button>
+          {status?.connected && status.connectionType === 'oauth' && (
             <p className="text-muted-foreground text-xs">
-              Use your existing key where possible. Generating a replacement in Songstats may
-              disconnect other integrations. Songstats access and usage limits apply.
+              Connected with Songstats · read-only access
             </p>
-            <Button type="submit" disabled={busy || !key.trim()}>
-              {busy ? 'Checking…' : 'Connect and enable hourly updates'}
-            </Button>
-          </form>
+          )}
+          {status?.oauthLastError && (
+            <p role="alert" className="text-destructive text-sm">
+              {status.oauthLastError}
+            </p>
+          )}
+          <details className="text-sm">
+            <summary className="text-muted-foreground cursor-pointer">
+              Advanced: use an API key
+            </summary>
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void action('connect');
+              }}
+              className="space-y-3"
+            >
+              <Label htmlFor="songstats-api-key">
+                {status?.connected ? 'Replace API key' : 'Songstats API key'}
+              </Label>
+              <Input
+                id="songstats-api-key"
+                type="password"
+                autoComplete="off"
+                spellCheck={false}
+                value={key}
+                onChange={(event) => setKey(event.target.value)}
+                maxLength={2048}
+                disabled={busy}
+                required
+                className="text-base"
+              />
+              <p className="text-muted-foreground text-xs">
+                Use your existing key where possible. Generating a replacement in Songstats may
+                disconnect other integrations. Songstats access and usage limits apply.
+              </p>
+              <Button type="submit" disabled={busy || !key.trim()}>
+                {busy ? 'Checking…' : 'Connect and enable hourly updates'}
+              </Button>
+            </form>
+          </details>
           {status?.connected && (
             <div className="flex flex-wrap gap-2 border-t pt-3">
               <Button
@@ -191,6 +255,15 @@ export function RadioSyncConnection({
               >
                 {status.enabled ? 'Check now' : 'Resume hourly checks'}
               </Button>
+              {status.connectionType === 'oauth' && (
+                <Button
+                  variant="ghost"
+                  disabled={busy}
+                  onClick={() => void action('oauth/disconnect')}
+                >
+                  Disconnect Songstats
+                </Button>
+              )}
               {status.enabled && (
                 <Button variant="ghost" disabled={busy} onClick={() => void action('pause')}>
                   Pause checks
@@ -198,11 +271,6 @@ export function RadioSyncConnection({
               )}
             </div>
           )}
-          {status?.coverageWarnings?.map((warning) => (
-            <p key={warning} className="text-xs text-muted-foreground">
-              {warning}
-            </p>
-          ))}
           {status?.nextRun && (
             <p className="text-muted-foreground text-xs">
               Next scheduled check: {date(status.nextRun)}

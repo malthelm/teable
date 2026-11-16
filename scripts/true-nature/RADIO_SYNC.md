@@ -1,5 +1,17 @@
 # True Nature radio updates
 
+## OAuth (preferred)
+
+Connect with Songstats in the radio dashboard. The registered public client uses a fixed HTTPS callback, PKCE S256, ten-minute single-use state bound to the Teable administrator and session, and the read-only `mcp:read enterprise:read` scopes. The user signs in and approves access on Songstats. The callback verifies the True Nature catalog before enabling sync. It does not reuse the ChatGPT connection.
+
+`oauth-client.json` and `oauth-tokens.json` stay in the private mounted directory with mode 0600. Only the server handles access/refresh tokens. The worker refreshes expiring tokens under an exclusive file lock and saves rotating refresh tokens atomically. A revoked refresh grant requires reconnection; no raw provider errors or token values are logged. A failed or cancelled replacement preserves the previous connection. Disconnect removes local tokens, pauses scheduling and attempts to revoke the refresh grant; if remote revocation fails, the UI directs the administrator to remove the connection in Songstats.
+
+`connectionType: oauth` routes analytics through the fixed Songstats MCP endpoint with only `get_labels_catalog` and `get_tracks_stats`, explicitly scoped to the True Nature label and radio source. It supports JSON and SSE responses and negotiated protocol versions. It uses the same staging, deduplication, native links, readback and failure status as the API-key importer. API keys remain an optional advanced fallback.
+
+Validate with `node --test scripts/true-nature/songstats-oauth.test.cjs` as well as the sync tests. Authorization and an actual first sync still require the user's Songstats approval. Test complete consent and refresh on the live account before reporting unattended sync as verified.
+
+## Import and operational behavior
+
 `radio-sync.mjs` runs as one bounded Dokploy worker. It reads the accessible True Nature label catalog and every page of expanded radio station timestamps once per hour. Every catalog and statistics request explicitly sets `source=radio`, including catalog pagination and connection verification. It stages responses before writing through Teable's normal permission-checked record API. It does not update historical non-radio metrics or import Airtable data.
 
 The private directory named by `TRUE_NATURE_RADIO_SYNC_DIR` contains `config.json` (mode 0600), safe `status.json`, and restricted run captures and mutation journals. Configuration contains a base-scoped `teableToken`, optional Songstats `apiKey`, `enabled`, and `requestedAt`. The Teable token needs record read/create/update and base/table/field/view read; no delete or schema permissions. Renew it before its configured expiry. Never commit the private directory or log these credentials. `TRUE_NATURE_TEABLE_URL` is a deployment-controlled internal API origin.
