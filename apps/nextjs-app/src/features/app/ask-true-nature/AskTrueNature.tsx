@@ -2,10 +2,20 @@ import { HttpAgent } from '@ag-ui/client';
 import type { Message } from '@ag-ui/client';
 import { MarkdownReadonly } from '@teable/ui-lib/base';
 import { Badge, Button, Card, CardContent, Textarea } from '@teable/ui-lib/shadcn';
-import { ArrowUp, ExternalLink, MessageSquare, Plus, Radio, Disc3, Square } from 'lucide-react';
+import {
+  ArrowUp,
+  ExternalLink,
+  MessageSquare,
+  Plus,
+  Radio,
+  Disc3,
+  Square,
+  PanelRightClose,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { RADIO_BASE } from '../radio/radio-data';
+import { RadioSyncConnection } from '../radio/RadioSyncConnection';
 import styles from './ask.module.css';
 
 interface Source {
@@ -37,9 +47,16 @@ function safeSources(value: unknown): Source[] {
     )
     .slice(0, 30);
 }
-export function AskTrueNature() {
+export function AskTrueNature({
+  compact = false,
+  onCollapse,
+}: {
+  compact?: boolean;
+  onCollapse?: () => void;
+}) {
   const agent = useRef<HttpAgent | undefined>(undefined);
-  const bottom = useRef<HTMLDivElement>(null);
+  const scroll = useRef<HTMLDivElement>(null);
+  const [showSources, setShowSources] = useState(false);
   const sourcePanel = useRef<HTMLElement>(null);
   const conversation = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
@@ -90,7 +107,7 @@ export function AskTrueNature() {
     };
   }, []);
   useEffect(() => {
-    bottom.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
+    if (scroll.current) scroll.current.scrollTop = scroll.current.scrollHeight;
   }, [messages, busy]);
   const ask = async (text: string) => {
     const a = agent.current;
@@ -133,18 +150,30 @@ export function AskTrueNature() {
       m.content.trim()
   );
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${compact ? styles.compact : ''}`}>
       <header className={styles.header}>
         <h1 className="flex min-w-0 items-center gap-2 text-sm font-medium">
           <MessageSquare size={16} className="shrink-0" /> Ask True Nature
         </h1>
-        <Button variant="ghost" size="sm" disabled={busy || !messages.length} onClick={clear}>
-          <Plus size={15} /> New chat
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" disabled={busy || !messages.length} onClick={clear}>
+            <Plus size={15} /> New chat
+          </Button>
+          {onCollapse && (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Collapse Ask True Nature"
+              onClick={onCollapse}
+            >
+              <PanelRightClose size={18} />
+            </Button>
+          )}
+        </div>
       </header>
-      <div className={styles.layout}>
+      <div className={styles.layout} data-sources={showSources}>
         <div className={styles.conversation} ref={conversation}>
-          <div className={styles.scroll}>
+          <div className={styles.scroll} ref={scroll}>
             {!visible.length && (
               <div className={styles.welcome}>
                 <Badge variant="secondary">Radio & releases</Badge>
@@ -167,9 +196,10 @@ export function AskTrueNature() {
                   ))}
                 </div>
                 <p className={styles.note}>
-                  Radio uses an imported Songstats snapshot. Release readiness is checked live in
-                  Label Suite. Each answer links back to its sources.
+                  Radio uses the latest completed Songstats import. Release readiness is checked
+                  live in Label Suite. Each answer links back to its sources.
                 </p>
+                <RadioSyncConnection manage={false} />
               </div>
             )}
             <div className={styles.messages}>
@@ -209,7 +239,6 @@ export function AskTrueNature() {
                 {error}
               </div>
             )}
-            <div ref={bottom} />
           </div>
           <form
             className={styles.composer}
@@ -273,15 +302,17 @@ export function AskTrueNature() {
                 variant="link"
                 size="sm"
                 className={styles.mobileSources}
-                onClick={() =>
-                  sourcePanel.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
-                }
+                onClick={() => {
+                  if (compact) setShowSources(true);
+                  else sourcePanel.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+                }}
               >
                 View {sources.length} sources
               </Button>
             )}
             <p className={styles.note}>
-              Read-only · Check source records before acting · Chat clears when you leave this page
+              Read-only · Check source records before acting · Chat clears when you reload or leave
+              this workspace
             </p>
           </form>
         </div>
@@ -290,9 +321,10 @@ export function AskTrueNature() {
             variant="ghost"
             size="sm"
             className={styles.mobileSources}
-            onClick={() =>
-              conversation.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
-            }
+            onClick={() => {
+              if (compact) setShowSources(false);
+              else conversation.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+            }}
           >
             ← Back to chat
           </Button>
@@ -303,6 +335,14 @@ export function AskTrueNature() {
                 <CardContent className="p-3">
                   <Link
                     href={s.href}
+                    onClick={() => {
+                      if (
+                        compact &&
+                        window.matchMedia('(max-width: 1199px)').matches &&
+                        !s.href.startsWith('https:')
+                      )
+                        onCollapse?.();
+                    }}
                     target={s.href.startsWith('https:') ? '_blank' : undefined}
                     rel="noreferrer"
                     className="flex items-start justify-between gap-2 text-sm font-medium hover:underline"

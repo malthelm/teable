@@ -238,3 +238,18 @@
     display: inline-flex;
   }
 }
+
+.compact { height: 100%; }
+.compact .header { padding: 0 10px; }
+.compact .layout { flex-direction: column; overflow: hidden; }
+.compact .conversation { flex: 1; height: auto; min-height: 0; }
+.compact .scroll { padding: 16px; }
+.compact .welcome { margin: 12px 0; }
+.compact .welcome h2 { font-size: 22px; }
+.compact .prompts { grid-template-columns: 1fr; margin: 20px 0; }
+.compact .prompt { min-height: 56px; padding: 12px; }
+.compact .composer { position: static; padding: 12px; }
+.compact .mobileSources { display: inline-flex; }
+.compact .sources { display: none; width: 100%; border: 0; overflow: auto; }
+.compact .layout[data-sources='true'] .conversation { display: none; }
+.compact .layout[data-sources='true'] .sources { display: block; }

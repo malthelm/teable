@@ -1,9 +1,11 @@
 import { dehydrate, QueryClient } from '@tanstack/react-query';
 import { ReactQueryKeys } from '@teable/sdk/config';
 import type { GetServerSideProps } from 'next';
-import { AskTrueNature } from '@/features/app/ask-true-nature/AskTrueNature';
+import { useEffect } from 'react';
+import { useAskPanel } from '@/features/app/ask-true-nature/AskPanel';
 import { BaseLayout } from '@/features/app/layouts/BaseLayout';
 import { RADIO_BASE } from '@/features/app/radio/radio-data';
+import { RadioDashboard } from '@/features/app/radio/RadioDashboard';
 import { baseAllConfig } from '@/features/i18n/base-all.config';
 import ensureLogin from '@/lib/ensureLogin';
 import handleBase from '@/lib/handleBase';
@@ -12,7 +14,13 @@ import type { NextPageWithLayout } from '@/lib/type';
 import withAuthSSR from '@/lib/withAuthSSR';
 import withEnv from '@/lib/withEnv';
 
-const AskPage: NextPageWithLayout = () => <AskTrueNature />;
+const AskPage: NextPageWithLayout = () => {
+  const { show } = useAskPanel();
+  useEffect(() => {
+    show();
+  }, [show]);
+  return <RadioDashboard />;
+};
 AskPage.getLayout = (page, props) => <BaseLayout {...props}>{page}</BaseLayout>;
 
 const authorizedPage = withEnv(

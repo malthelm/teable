@@ -15,6 +15,7 @@ import { ArrowUpRight, Filter, LayoutDashboard, RefreshCw, Table2 } from 'lucide
 import Head from 'next/head';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { RadioSyncConnection } from './RadioSyncConnection';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
   countryName,
@@ -199,6 +200,7 @@ export function RadioDashboard() {
         </div>
       </header>
       <div className={styles.main}>
+        <RadioSyncConnection onUpdated={() => setRevision((value) => value + 1)} />
         {loading ? (
           <div role="status" className={styles.state}>
             Loading radio plays…
@@ -219,7 +221,7 @@ export function RadioDashboard() {
             <div className={styles.freshness}>
               <span>Songstats imported {dateLabel(imported)}</span>
               <Badge variant="secondary" className="font-normal">
-                Automatic sync off
+                Songstats radio detections
               </Badge>
             </div>
             <Button

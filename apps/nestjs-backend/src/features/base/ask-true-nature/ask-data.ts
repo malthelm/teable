@@ -35,7 +35,13 @@ const countryMatches = (value: string, query?: string) =>
   includes(countryName(value), countryName(query));
 export function summarizeRadio(
   records: { id: string; fields: Record<string, unknown> }[],
-  query: z.infer<typeof radioQuery>
+  query: z.infer<typeof radioQuery>,
+  sync?: {
+    enabled: boolean;
+    lastSuccess: string | null;
+    lastError: string | null;
+    running: boolean;
+  }
 ) {
   const seen = new Set<string>();
   const all = records.map((r) => {
@@ -78,7 +84,8 @@ export function summarizeRadio(
       .sort()
       .at(-1) || null;
   const data = {
-    source: 'Imported Songstats radio detections; automatic sync is off.',
+    source: 'Songstats radio detections stored in Teable. Coverage depends on Songstats reporting.',
+    sync: sync || { enabled: false, lastSuccess: null },
     timezone: 'UTC',
     filters: query,
     snapshotFetchedAt: fetchedAt,
@@ -98,9 +105,9 @@ export function summarizeRadio(
   const sources: ISourceCard[] = [
     {
       id: 'radio',
-      title: 'Songstats radio snapshot',
+      title: 'Songstats radio plays',
       href: `/base/${ASK_BASE}/radio`,
-      detail: `${plays.length} matching plays · ${all.length} imported rows · fetched ${fetchedAt || 'unknown'}. Sync off; UTC.`,
+      detail: `${plays.length} matching plays · ${all.length} imported rows · fetched ${sync?.lastSuccess || fetchedAt || 'unknown'}. ${sync?.enabled ? 'Hourly sync enabled' : 'Automatic sync off'}${sync?.running ? '; update in progress' : ''}${sync?.lastError ? '; last update failed' : ''}; UTC.`,
     },
     ...plays.slice(0, 6).map((p) => ({
       id: p.id,

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { BaseNodeTree } from './BaseNodeTree';
 import { BasePageRouter } from './BasePageRouter';
+import { useAskPanel } from '@/features/app/ask-true-nature/AskPanel';
 import { useCloseMobileSidebarSheet } from '@/features/app/components/toggle-side-bar/SheetWrapper';
 import { RADIO_BASE, RADIO_HOME } from '@/features/app/radio/radio-data';
 
@@ -16,6 +17,7 @@ export const BaseSideBar = (props: {
   const { renderWinFreeCredit, renderAnnouncementCard } = props;
   const base = useBase();
   const router = useRouter();
+  const askPanel = useAskPanel();
   const closeSidebar = useCloseMobileSidebarSheet();
   return (
     <>
@@ -85,17 +87,15 @@ export const BaseSideBar = (props: {
           size="xs"
           className={cn(
             'mx-3 justify-start gap-2 text-sm font-normal',
-            router.pathname.endsWith('/ask') && 'bg-secondary'
+            askPanel.open && 'bg-secondary'
           )}
-          asChild
+          onClick={() => {
+            closeSidebar?.();
+            askPanel.show();
+          }}
+          aria-expanded={askPanel.open}
         >
-          <Link
-            href={`/base/${RADIO_BASE}/ask`}
-            onClick={closeSidebar}
-            aria-current={router.pathname.endsWith('/ask') ? 'page' : undefined}
-          >
-            <MessageSquare size={16} /> Ask True Nature
-          </Link>
+          <MessageSquare size={16} /> Ask True Nature
         </Button>
       )}
       {/* <TableList /> */}

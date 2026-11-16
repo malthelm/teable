@@ -24,6 +24,7 @@ import { Permissions } from '../../auth/decorators/permissions.decorator';
 import { PermissionService } from '../../auth/permission.service';
 import { RecordService } from '../../record/record.service';
 import { LabelSuiteReader } from '../label-suite.controller';
+import { radioSyncStatus } from '../radio-sync/radio-sync.controller';
 import {
   ASK_BASE,
   ASK_TOOLS,
@@ -93,7 +94,7 @@ export class AskTrueNatureController {
           true
         );
         rows.push(...page.records);
-        if (page.records.length < 1000) return summarizeRadio(rows, q);
+        if (page.records.length < 1000) return summarizeRadio(rows, q, await radioSyncStatus());
       }
       throw new Error('Radio data exceeds the assistant limit. Use the radio dashboard.');
     }

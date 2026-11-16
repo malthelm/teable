@@ -5,7 +5,7 @@ import { NotificationProvider, SessionProvider } from '@teable/sdk';
 import { AnchorContext, AppProvider, BaseProvider, TableProvider } from '@teable/sdk/context';
 import { useTranslation } from 'next-i18next';
 import React, { Fragment } from 'react';
-import { AppLayout } from '@/features/app/layouts';
+import { AskPanelWorkspace } from '../ask-true-nature/AskPanel';
 import { WorkFlowPanelModal } from '../automation/workflow-panel/WorkFlowPanelModal';
 import { BaseNodeProvider } from '../blocks/base/base-node/BaseNodeProvider';
 import { BaseSideBar } from '../blocks/base/base-side-bar/BaseSideBar';
@@ -27,6 +27,7 @@ import { useEnv } from '../hooks/useEnv';
 import { useSdkLocale } from '../hooks/useSdkLocale';
 import { preventContextMenuUnlessText } from '../utils/prevent-context-menu';
 import { TemplateBaseLayout } from './TemplateBaseLayout';
+import { AppLayout } from '@/features/app/layouts';
 
 const BaseLayoutInner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isEmbed = useEmbedMode();
@@ -40,19 +41,21 @@ const BaseLayoutInner: React.FC<{ children: React.ReactNode }> = ({ children }) 
           onContextMenu={preventContextMenuUnlessText}
         >
           <div className="flex h-screen w-full">
-            {/* The native mobile shell has its own directory tree: no sidebar in embed mode */}
-            {!isEmbed && (
-              <Sidebar headerLeft={<BaseSidebarHeaderLeft />} headerRight={<QuickAction />}>
-                <Fragment>
-                  <div className="flex h-full flex-col gap-2 divide-y divide-solid overflow-auto py-2">
-                    <BaseSideBar />
-                  </div>
-                  <div className="grow basis-0" />
-                  <SideBarFooter />
-                </Fragment>
-              </Sidebar>
-            )}
-            <div className="min-w-80 flex-1">{children}</div>
+            <AskPanelWorkspace disabled={isEmbed}>
+              {/* The native mobile shell has its own directory tree: no sidebar in embed mode */}
+              {!isEmbed && (
+                <Sidebar headerLeft={<BaseSidebarHeaderLeft />} headerRight={<QuickAction />}>
+                  <Fragment>
+                    <div className="flex h-full flex-col gap-2 divide-y divide-solid overflow-auto py-2">
+                      <BaseSideBar />
+                    </div>
+                    <div className="grow basis-0" />
+                    <SideBarFooter />
+                  </Fragment>
+                </Sidebar>
+              )}
+              <div className="min-w-0 flex-1">{children}</div>
+            </AskPanelWorkspace>
           </div>
           <UploadProgressPanel />
         </div>

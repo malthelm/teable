@@ -36,9 +36,10 @@ import { BaseQueryService } from './base-query/base-query.service';
 import { BaseController } from './base.controller';
 import { BaseService } from './base.service';
 import { LabelSuiteController, LabelSuiteReader } from './label-suite.controller';
+import { RadioSyncController } from './radio-sync/radio-sync.controller';
 
 @Module({
-  controllers: [BaseController, LabelSuiteController, AskTrueNatureController],
+  controllers: [BaseController, LabelSuiteController, AskTrueNatureController, RadioSyncController],
   imports: [
     CanaryModule,
     CollaboratorModule,
