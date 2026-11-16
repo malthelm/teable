@@ -53,6 +53,7 @@ describe('Songstats connection boundaries', () => {
     vi.stubGlobal('fetch', fetcher);
     await controller.connect(ASK_BASE, { apiKey: 'new-test-key' });
     expect(fetcher.mock.calls[0][0]).toContain('songstats_label_id=8n032k69');
+    expect(new URL(fetcher.mock.calls[0][0]).searchParams.get('source')).toBe('radio');
     const stored = JSON.parse(await readFile(join(dir, 'config.json'), 'utf8'));
     expect(stored.apiKey).toBe('new-test-key');
     expect(stored.enabled).toBe(true);

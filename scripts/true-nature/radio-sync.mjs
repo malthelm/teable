@@ -42,6 +42,9 @@ async function request(url, options = {}) {
   const data = await response.json();
   return data;
 }
+export function songstatsQuery(id, offset) {
+  return new URLSearchParams({ songstats_label_id: LABEL, source: 'radio', limit: '100', offset: String(offset), ...(id !== 'catalog' ? { songstats_track_id: id, with_stations: 'true', with_radio_plays: 'true' } : {}) });
+}
 export async function capture(provider) {
   const catalog = [], responses = [];
   let expected;
@@ -216,7 +219,7 @@ async function run(dir, config, snapshot) {
       const filename = `${id === 'catalog' ? 'catalog' : id}-${offset}.json`;
       if (snapshot) return readJSON(join(snapshot, filename));
       const path = id === 'catalog' ? '/labels/catalog' : '/tracks/stats';
-      const query = new URLSearchParams({ songstats_label_id: LABEL, limit: '100', offset: String(offset), ...(id !== 'catalog' ? { songstats_track_id: id, source: 'radio', with_stations: 'true', with_radio_plays: 'true' } : {}) });
+      const query = songstatsQuery(id, offset);
       return request(`https://api.songstats.com/enterprise/v1${path}?${query}`, { headers: { apikey: config.apiKey } });
     };
     const captured = await capture(provider);

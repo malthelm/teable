@@ -1,6 +1,6 @@
 # True Nature radio updates
 
-`radio-sync.mjs` runs as one bounded Dokploy worker. It reads the accessible True Nature label catalog and every page of expanded radio station timestamps once per hour. It stages responses before writing through Teable's normal permission-checked record API. It does not update historical non-radio metrics or import Airtable data.
+`radio-sync.mjs` runs as one bounded Dokploy worker. It reads the accessible True Nature label catalog and every page of expanded radio station timestamps once per hour. Every catalog and statistics request explicitly sets `source=radio`, including catalog pagination and connection verification. It stages responses before writing through Teable's normal permission-checked record API. It does not update historical non-radio metrics or import Airtable data.
 
 The private directory named by `TRUE_NATURE_RADIO_SYNC_DIR` contains `config.json` (mode 0600), safe `status.json`, and restricted run captures and mutation journals. Configuration contains a base-scoped `teableToken`, optional Songstats `apiKey`, `enabled`, and `requestedAt`. The Teable token needs record read/create/update and base/table/field/view read; no delete or schema permissions. Renew it before its configured expiry. Never commit the private directory or log these credentials. `TRUE_NATURE_TEABLE_URL` is a deployment-controlled internal API origin.
 

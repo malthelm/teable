@@ -106,7 +106,7 @@ export class RadioSyncController {
       failure = 'The server could not reach Songstats. Please try again later.';
       // eslint-disable-next-line teable/no-bare-fetch -- Fixed HTTPS origin and path, no user-controlled URL or redirects.
       const response = await fetch(
-        'https://api.songstats.com/enterprise/v1/labels/catalog?songstats_label_id=8n032k69&limit=1&offset=0',
+        'https://api.songstats.com/enterprise/v1/labels/catalog?songstats_label_id=8n032k69&source=radio&limit=1&offset=0',
         { headers: { apikey: apiKey }, redirect: 'error', signal: AbortSignal.timeout(20000) }
       );
       httpStatus = response.status;

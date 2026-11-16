@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { capture, importCapture, playIdentity, retryAfter, TABLES } from './radio-sync.mjs';
+import { capture, importCapture, playIdentity, retryAfter, songstatsQuery, TABLES } from './radio-sync.mjs';
 
 test('numeric and string timestamps have the same identity; invalid timestamps fail', () => {
   assert.equal(playIdentity('t', 's', 1790000000), playIdentity('t', 's', '1790000000'));
@@ -44,4 +44,14 @@ test('duplicate existing identities stop before mutations', async () => {
   const api = { records: async t => t === TABLES.artists ? [duplicate, { ...duplicate, id: 'b' }] : [], write: async () => writes++ };
   await assert.rejects(importCapture({ tracks: [] }, api, async () => {}, new Date().toISOString()), /duplicate/);
   assert.equal(writes, 0);
+});
+
+test('catalog and track pagination always request the authorized radio source', () => {
+  for (const id of ['catalog', 'track1']) for (const offset of [0, 100]) {
+    const query = songstatsQuery(id, offset);
+    assert.equal(query.get('source'), 'radio');
+    assert.equal(query.get('offset'), String(offset));
+    assert.equal(query.get('songstats_label_id'), '8n032k69');
+    assert.equal(query.get('songstats_track_id'), id === 'catalog' ? null : id);
+  }
 });
