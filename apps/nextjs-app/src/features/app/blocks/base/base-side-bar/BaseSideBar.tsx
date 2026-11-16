@@ -1,7 +1,7 @@
 // import { TableList } from '../../table-list/TableList';
 import { useBase } from '@teable/sdk/hooks';
 import { Button, cn } from '@teable/ui-lib/shadcn';
-import { Radio } from 'lucide-react';
+import { Disc3, Radio } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { BaseNodeTree } from './BaseNodeTree';
@@ -37,6 +37,26 @@ export const BaseSideBar = (props: {
           >
             <Radio size={16} />
             Radio dashboard
+          </Link>
+        </Button>
+      )}
+      {base.id === RADIO_BASE && (
+        <Button
+          variant="ghost"
+          size="xs"
+          className={cn(
+            'mx-3 justify-start gap-2 text-sm font-normal',
+            router.pathname.endsWith('/releases') && 'bg-secondary'
+          )}
+          asChild
+        >
+          <Link
+            href={`/base/${RADIO_BASE}/releases`}
+            onClick={closeSidebar}
+            aria-current={router.pathname.endsWith('/releases') ? 'page' : undefined}
+          >
+            <Disc3 size={16} />
+            Releases
           </Link>
         </Button>
       )}

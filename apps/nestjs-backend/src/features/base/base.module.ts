@@ -34,9 +34,10 @@ import { BasePersonalOrderService } from './base-personal-order.service';
 import { BaseQueryService } from './base-query/base-query.service';
 import { BaseController } from './base.controller';
 import { BaseService } from './base.service';
+import { LabelSuiteController } from './label-suite.controller';
 
 @Module({
-  controllers: [BaseController],
+  controllers: [BaseController, LabelSuiteController],
   imports: [
     CanaryModule,
     CollaboratorModule,

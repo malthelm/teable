@@ -1,0 +1,119 @@
+.page {
+  height: var(--teable-content-height);
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: 14px;
+}
+.header {
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+}
+.toolbar {
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.toolbar > div {
+  width: min(100%, 480px);
+}
+.freshness {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  margin: 12px 0 24px;
+}
+.title {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.title h2 {
+  font-size: 22px;
+  font-weight: 600;
+}
+.title p {
+  margin-top: 6px;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.heading {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.details > div {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid hsl(var(--border));
+  font-size: 13px;
+}
+.details dt {
+  color: hsl(var(--muted-foreground));
+}
+.details dd {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1000px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .columns {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 767px) {
+  .header {
+    padding-left: 44px;
+  }
+  .content {
+    padding: 12px;
+  }
+  .metrics,
+  .columns {
+    gap: 12px;
+  }
+  .title h2 {
+    font-size: 20px;
+  }
+  .title {
+    flex-wrap: wrap;
+  }
+  .freshness {
+    margin-bottom: 16px;
+  }
+}
